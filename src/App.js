@@ -1,11 +1,16 @@
 import 'react-native-gesture-handler';
-import React from 'react';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/lib/integration/react';
-import { store, persistor } from './store';
-import ApplicationNavigator from './navigators/Application';
 import './translations';
-const App = () => (<Provider store={store}>
+
+import { persistor, store } from './store';
+
+import ApplicationNavigator from './navigators/Application';
+import { PersistGate } from 'redux-persist/lib/integration/react';
+import { Provider } from 'react-redux';
+import React from 'react';
+import SignUp from './screens/SignUp';
+
+const App = () => (
+  <Provider store={store}>
     {/**
      * PersistGate delays the rendering of the app's UI until the persisted state has been retrieved
      * and saved to redux.
@@ -15,6 +20,8 @@ const App = () => (<Provider store={store}>
      */}
     <PersistGate loading={null} persistor={persistor}>
       <ApplicationNavigator />
+      {/* <SignUp /> */}
     </PersistGate>
-  </Provider>);
+  </Provider>
+);
 export default App;

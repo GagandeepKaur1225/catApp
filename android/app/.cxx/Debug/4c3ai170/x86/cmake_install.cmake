@@ -42,6 +42,15 @@ if(NOT DEFINED CMAKE_OBJDUMP)
   set(CMAKE_OBJDUMP "/Users/hidayatrehmat/Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objdump")
 endif()
 
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for each subdirectory.
+  include("/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/Debug/4c3ai170/x86/rngesturehandler_codegen_autolinked_build/cmake_install.cmake")
+  include("/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/Debug/4c3ai170/x86/reactnativemmkv_autolinked_build/cmake_install.cmake")
+  include("/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/Debug/4c3ai170/x86/safeareacontext_autolinked_build/cmake_install.cmake")
+  include("/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/Debug/4c3ai170/x86/rnscreens_autolinked_build/cmake_install.cmake")
+
+endif()
+
 if(CMAKE_INSTALL_COMPONENT)
   set(CMAKE_INSTALL_MANIFEST "install_manifest_${CMAKE_INSTALL_COMPONENT}.txt")
 else()
