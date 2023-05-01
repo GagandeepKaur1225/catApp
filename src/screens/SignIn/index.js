@@ -17,6 +17,9 @@ const SignIn = () => {
   const password = useRef('');
   const confirmpass = useRef('');
   const navigation = useNavigation();
+  function handleSubmit() {
+    navigation.navigate('Home');
+  }
   return (
     <SafeAreaView style={style.mainView}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -46,10 +49,7 @@ const SignIn = () => {
         <Text style={style.errText}>{passErr}</Text>
       </View>
       <TouchableOpacity style={style.submitButton}>
-        <Text
-          style={style.buttonText}
-          //   onPress={data => handleSubmit(data)}
-        >
+        <Text style={style.buttonText} onPress={handleSubmit}>
           SUBMIT
         </Text>
       </TouchableOpacity>
