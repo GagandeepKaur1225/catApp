@@ -3,10 +3,10 @@
 buildscript {
     ext {
         buildToolsVersion = "33.0.0"
-        minSdkVersion = 21
+        minSdkVersion = 24
         compileSdkVersion = 33
         targetSdkVersion = 33
-
+        kotlinVersion = "1.5.20"
         // We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
         ndkVersion = "23.1.7779620"
     }
@@ -22,6 +22,9 @@ buildscript {
 
       // ADD THIS
       maven { url "https://www.jitpack.io" }
+      maven {
+			url "https://dl.cloudsmith.io/public/cometchat/cometchat-pro-android/maven/"
+		}
     }
     dependencies {
         classpath("com.android.tools.build:gradle:7.3.1")

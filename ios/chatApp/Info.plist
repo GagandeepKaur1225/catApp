@@ -4,6 +4,12 @@
 <dict>
 	<key>NSFileProviderDomainUsageDescription</key>
 	<string>To select profile picture</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>app requires gallery access</string>
+	<key>NSCameraUsageDescription</key>
+	<string>app reuires camera permission</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>app reuires microphone access</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

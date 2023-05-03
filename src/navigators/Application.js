@@ -2,8 +2,10 @@ import {
   NavigationContainer,
   useNavigationContainerRef,
 } from '@react-navigation/native';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar, View } from 'react-native';
 
+import { CometChat } from '@cometchat-pro/react-native-chat';
+import GroupChat from '../screens/GroupChat';
 import Home from './Home';
 import MainNavigator from './Main';
 import React from 'react';
@@ -21,10 +23,24 @@ const ApplicationNavigator = () => {
   const { colors } = NavigationTheme;
   const navigationRef = useNavigationContainerRef();
   useFlipper(navigationRef);
+  let appID = '238441c85d5a28f8';
+  let region = 'us';
+  let appSetting = new CometChat.AppSettingsBuilder()
+    .subscribePresenceForAllUsers()
+    .setRegion(region)
+    .autoEstablishSocketConnection(true)
+    .build();
+  CometChat.init(appID, appSetting).then(
+    () => {
+      console.log('Initialization completed successfully');
+    },
+    error => {
+      console.log('Initialization failed with error:', error);
+    },
+  );
   return (
-    <SafeAreaView style={[Layout.fill, { backgroundColor: colors.card }]}>
+    <View style={[Layout.fill, { backgroundColor: colors.card }]}>
       <NavigationContainer>
-        {/* <StatusBar /> */}
         <Stack.Navigator
           screenOptions={{ headerShown: false }}
           initialRouteName="SignUp"
@@ -32,9 +48,10 @@ const ApplicationNavigator = () => {
           <Stack.Screen name="SignUp" component={SignUp} />
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="GroupChat" component={GroupChat} />
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaView>
+    </View>
   );
 };
 export default ApplicationNavigator;

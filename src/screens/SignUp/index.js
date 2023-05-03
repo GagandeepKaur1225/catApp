@@ -1,16 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  heightPercentageToDP,
+  widthPercentageToDP,
+} from 'react-native-responsive-screen';
 
+import { Alert } from 'react-native';
+import { CometChat } from '@cometchat-pro/react-native-chat';
 import CustomInput from '../../components/CustomInput';
+import ImageCropPicker from 'react-native-image-crop-picker';
+import { Images } from '../../shared/images';
 import database from '../../database';
 import { style } from './style';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const SignUp = () => {
   useEffect(() => {
@@ -18,8 +28,9 @@ const SignUp = () => {
     console.log('we are trying');
     console.log(r);
   }, []);
+  const [imageUri, setUri] = useState('');
   const [show, setShow] = useState(false);
-  const [name, setName] = useState('');
+  const [nameUser, setName] = useState('');
   const [numbr, setNumber] = useState('');
   const [email, setEmail] = useState('');
   const [emailErr, setEmailErr] = useState('');
@@ -73,16 +84,67 @@ const SignUp = () => {
       setPassErr('');
     }
   }
-  async function handleSignUp(name, numbr, email, password) {
+  function selectImage() {
+    ImageCropPicker.openPicker({
+      width: 300,
+      height: 400,
+      cropping: true,
+    }).then(image => {
+      setUri(image.path);
+      console.log(image.path);
+    });
+  }
+  function handleSignUp2() {
+    handleSignUp(nameUser, numbr, email, password);
+    console.log('signing in');
+    navigation.navigate('SignIn');
+  }
+  async function handleSignUp(namePerson, numbr, email, password) {
     await database.write(async () => {
       console.log('writer ');
-      return await database.get('users').create(data => {
-        data.userName = name;
-        data.phoneNumber = +numbr;
-        data.email = email;
-        data.password = password;
-        data.profilePicture = 'hj';
-      });
+      if (
+        passErr.length === 0 &&
+        confirmErr.length === 0 &&
+        nameUser.length !== 0 &&
+        emailErr.length === 0 &&
+        numberErr.length === 0
+      ) {
+        Alert.alert('Registered Successfully');
+        console.log(nameUser,"USERnMAE IS")
+        let authKey = 'a33834be7959bd318261b78f2e7716430bdd369f';
+        let uid = nameUser.concat('_app');
+        let name = nameUser;
+
+        let user = new CometChat.User(uid);
+
+        user.setName(name);
+
+        CometChat.createUser(user, authKey).then(
+          user => {
+            console.log('user created', user);
+          },
+          error => {
+            console.log('error', error);
+          },
+        );
+        return await database.get('users').create(data => {
+          data.userName = namePerson;
+          data.phoneNumber = +numbr;
+          data.email = email;
+          data.password = password.current;
+          data.profilePicture = imageUri;
+        });
+      } else if (passErr.length !== 0) {
+        Alert.alert('password error');
+      } else if (confirmErr.length !== 0) {
+        Alert.alert('passwords doesnt match');
+      } else if (nameUser.length !== 0) {
+        Alert.alert('Enter your name first');
+      } else if (emailErr.length !== 0) {
+        Alert.alert('Enter correct mail');
+      } else {
+        Alert.alert('something wrong happened');
+      }
     });
   }
 
@@ -100,10 +162,25 @@ const SignUp = () => {
     console.log(y, 'the values in db');
     navigation.navigate('SignIn');
   }
+  const data1 = useSelector(item => item.userData);
+  const userName = data1.name;
+  console.log(data1, 'username here is');
+
   return (
-    <View>
-      <ScrollView style={style.mainView}>
+    <ScrollView>
+      <View style={style.mainView}>
         <Text style={style.mainHeading}>Sign Up</Text>
+        <View style={style.imageView}>
+          <Image
+            style={style.image}
+            source={
+              imageUri.length === 0 ? Images.defaultProfile : { uri: imageUri }
+            }
+          />
+          <TouchableOpacity onPress={selectImage}>
+            <Text>add image</Text>
+          </TouchableOpacity>
+        </View>
         <View style={style.innerView}>
           <CustomInput
             field="Name"
@@ -156,22 +233,21 @@ const SignUp = () => {
           />
           <Text style={style.errText}>{confirmErr}</Text>
         </View>
-        <TouchableOpacity
-          style={style.submitButton}
-          onPress={() => handleSignUp(name, numbr, email, password)}
-        >
-          <Text style={style.buttonText}>SUBMIT</Text>
-        </TouchableOpacity>
+        <View style={style.innerView}>
+          <TouchableOpacity style={style.submitButton} onPress={handleSignUp2}>
+            <Text style={style.buttonText}>SUBMIT</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={style.signIn}>
           Already have an account?
           <TouchableOpacity onPress={handleSignIn}>
             <Text>Sign in</Text>
           </TouchableOpacity>
         </Text>
-        {/* </SafeAreaView> */}
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 };
 
 export default SignUp;
+//{Images.defaultProfile}

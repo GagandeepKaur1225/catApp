@@ -1,16 +1,28 @@
+import { Platform, StyleSheet } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
 
-import { StyleSheet } from 'react-native';
-
 export const style = StyleSheet.create({
   mainView: {
-    top: heightPercentageToDP('0%'),
-    width: widthPercentageToDP('99%'),
-    height: heightPercentageToDP('95%'),
+    flex: 1,
+    top:
+      Platform.OS === 'ios'
+        ? heightPercentageToDP('10%')
+        : heightPercentageToDP('2%'),
+    marginTop:
+      Platform.OS === 'ios'
+        ? heightPercentageToDP('-5%')
+        : heightPercentageToDP('-4%'),
+    width: widthPercentageToDP('97%'),
+    height: heightPercentageToDP('100%'),
     left: widthPercentageToDP('2.1%'),
+    marginBottom:
+      Platform.OS === 'ios'
+        ? heightPercentageToDP('20%')
+        : heightPercentageToDP('25%'),
+    // borderWidth: 2,
   },
   innerView: {
     left: widthPercentageToDP('1%'),
@@ -46,5 +58,16 @@ export const style = StyleSheet.create({
     color: '#FF0000',
     left: widthPercentageToDP('2.5%'),
     width: widthPercentageToDP('85%'),
+  },
+  imageView: {
+    alignContent: 'center',
+    alignSelf: 'center',
+    padding: 5,
+  },
+  image: {
+    height: heightPercentageToDP('10%'),
+    width: widthPercentageToDP('14%'),
+    borderRadius: 30,
+    aspectRatio: 1,
   },
 });
