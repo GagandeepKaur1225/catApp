@@ -8,7 +8,7 @@ export const style = StyleSheet.create({
   mainView: {
     top:
       Platform.OS === 'ios'
-        ? heightPercentageToDP('6%')
+        ? heightPercentageToDP('4.1%')
         : heightPercentageToDP('0%'),
     height: heightPercentageToDP('100%'),
   },
@@ -29,5 +29,10 @@ export const style = StyleSheet.create({
     borderBottomWidth: 3,
     padding: 4,
     marginBottom: heightPercentageToDP('2%'),
+  },
+  groupsHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    left: widthPercentageToDP('3%'),
   },
 });

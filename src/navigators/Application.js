@@ -14,11 +14,14 @@ import SignUp from '../screens/SignUp';
 import { Startup } from '../screens';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useFlipper } from '@react-navigation/devtools';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../hooks';
 
 const Stack = createStackNavigator();
 // @refresh reset
 const ApplicationNavigator = () => {
+  const storeData = useSelector(data => data.userData.token);
+  console.log(storeData, 'store Data in application.js');
   const { Layout, darkMode, NavigationTheme } = useTheme();
   const { colors } = NavigationTheme;
   const navigationRef = useNavigationContainerRef();
@@ -43,7 +46,7 @@ const ApplicationNavigator = () => {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ headerShown: false }}
-          initialRouteName="SignUp"
+          initialRouteName={storeData.length !== 0 ? 'Home' : 'SignUp'}
         >
           <Stack.Screen name="SignUp" component={SignUp} />
           <Stack.Screen name="SignIn" component={SignIn} />

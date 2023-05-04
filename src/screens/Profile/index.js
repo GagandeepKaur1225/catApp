@@ -8,6 +8,7 @@ import {
 import React, { useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { CometChat } from '@cometchat-pro/react-native-chat';
 import { Images } from '../../shared/images';
 import { clearRedux } from '../../store/userInfo';
 import { style } from './style';
@@ -25,6 +26,14 @@ const Profile = () => {
   function logOut() {
     dispatch(clearRedux());
     navigation.navigate('SignIn');
+    CometChat.logout().then(
+      () => {
+        console.log('Logout completed successfully');
+      },
+      error => {
+        console.log('Logout failed with exception:', { error });
+      },
+    );
   }
   function goToChat() {
     navigation.navigate('Chat');

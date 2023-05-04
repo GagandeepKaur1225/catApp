@@ -53,3 +53,9 @@
 11	5632	1683098967	CMakeFiles/appmodules.dir/OnLoad.cpp.o	54ccbe20c653698e
 12	27734	1683098988	CMakeFiles/appmodules.dir/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/generated/rncli/src/main/jni/rncli.cpp.o	3f942825eb5388f8
 27737	28244	1683098989	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/intermediates/cxx/Debug/2r1no536/obj/armeabi-v7a/libappmodules.so	1e94057e6bcad57c
+0	62	0	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/Debug/2r1no536/armeabi-v7a/CMakeFiles/cmake.verify_globs	b454d9198c3f5082
+62	218	1683173418	build.ninja	533ee0d20c67adc4
+1	18	0	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/Debug/2r1no536/armeabi-v7a/CMakeFiles/cmake.verify_globs	b454d9198c3f5082
+11	8383	1683173426	CMakeFiles/appmodules.dir/OnLoad.cpp.o	54ccbe20c653698e
+10	35254	1683173453	CMakeFiles/appmodules.dir/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/generated/rncli/src/main/jni/rncli.cpp.o	3f942825eb5388f8
+35255	35720	1683173454	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/intermediates/cxx/Debug/2r1no536/obj/armeabi-v7a/libappmodules.so	1e94057e6bcad57c

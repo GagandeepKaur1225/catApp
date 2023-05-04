@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { CometChat } from '@cometchat-pro/react-native-chat';
 import CustomGroup from '../../components/Group';
@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 
 const Chat = () => {
   const data = useSelector(data => data);
+  const [loggedId, setLoggedId] = useState('');
   console.log(data);
   const navigation = useNavigation();
   const link = data.userData.profilePicture;
@@ -26,9 +27,34 @@ const Chat = () => {
     navigation.navigate('GroupChat');
   }
 
+  function addGroupMembers() {
+    let GUID = 'deafault_2122';
+    let UID = loggedId;
+    let membersList = [
+      new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
+    ];
+
+    CometChat.addMembersToGroup(GUID, membersList, []).then(
+      response => {
+        console.log('response', response);
+      },
+      error => {
+        console.log('Something went wrong', error);
+      },
+    );
+  }
+
+  useEffect(() => {
+    const loggedUser = CometChat.getLoggedinUser().then(data => {
+      console.log(data, 'whole data of logged user is:');
+      console.log(data.name, 'user logged in is');
+      setLoggedId(data.uid);
+    });
+    addGroupMembers();
+  }, []);
   return (
     <View style={style.mainView}>
-      <ImageBackground source={Images.background} resizeMode="cover">
+      <ImageBackground source={Images.background}>
         <View style={style.mainView}>
           <View style={style.upperView}>
             <Image
@@ -42,7 +68,7 @@ const Chat = () => {
             <Text style={style.profileName}>{data.userData.name}</Text>
           </View>
           <View>
-            <Text>groups</Text>
+            <Text style={style.groupsHeader}>Groups</Text>
           </View>
           <View>
             <CustomGroup groupName="default" onPress={goToGroupChat} />

@@ -41,18 +41,22 @@ const SignIn = () => {
       console.log(databaseData, 'the values in db for number is');
     };
   }, [nmbrErr]);
-  function handleSubmit() {
-    checkCredentials();
-    console.log(filterResult.current.length, 'filtered array is');
-    if (filterResult.current.length === 0) {
+  async function handleSubmit() {
+    const r = await checkCredentials();
+    console.log(r, 'filtered array is');
+    if (r.length === 0) {
+      console.log('kjlakhsdl user doesnt exist');
       Alert.alert('user doesnt exist,Sign Up first');
       navigation.navigate('SignUp');
     } else {
-      let UID = 'SUPERHERO1';
+      let key = r[0]._raw.userName;
+      let UID = key.concat('_app');
+      console.log(UID, 'UID IS:');
       let authKey = 'a33834be7959bd318261b78f2e7716430bdd369f';
 
       CometChat.getLoggedinUser().then(
         user => {
+          console.log(user, 'user in if');
           if (!user) {
             CometChat.login(UID, authKey).then(
               user => {
@@ -62,6 +66,8 @@ const SignIn = () => {
                 console.log('Login failed with exception:', { error });
               },
             );
+          } else {
+            console.log('Login user in ele condition', user);
           }
         },
         error => {
@@ -93,6 +99,7 @@ const SignIn = () => {
     console.log(filterResult.current.length, 'array after adding');
     console.log(y, 'value of y is');
     console.log(y[0], 'value of map is');
+    return y;
   }
   function numberCheck(data) {
     const reg = /^(\+\d{1,3}[- ]?)?\d{10}$/;
@@ -125,7 +132,7 @@ const SignIn = () => {
   }
   return (
     <SafeAreaView style={style.mainView}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
         <Text>back</Text>
       </TouchableOpacity>
       <Text style={style.mainHeading}>Sign In</Text>
