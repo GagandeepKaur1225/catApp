@@ -7,6 +7,8 @@ import { SafeAreaView, StatusBar, View } from 'react-native';
 import { CometChat } from '@cometchat-pro/react-native-chat';
 import GroupChat from '../screens/GroupChat';
 import Home from './Home';
+import LoggedIN from './LoggedIN';
+import LoggedOut from './LoggedOut';
 import MainNavigator from './Main';
 import React from 'react';
 import SignIn from '../screens/SignIn';
@@ -43,17 +45,7 @@ const ApplicationNavigator = () => {
   );
   return (
     <View style={[Layout.fill, { backgroundColor: colors.card }]}>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{ headerShown: false }}
-          initialRouteName={storeData.length !== 0 ? 'Home' : 'SignUp'}
-        >
-          <Stack.Screen name="SignUp" component={SignUp} />
-          <Stack.Screen name="SignIn" component={SignIn} />
-          <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="GroupChat" component={GroupChat} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      {storeData.length !== 0 ? <LoggedIN /> : <LoggedOut />}
     </View>
   );
 };

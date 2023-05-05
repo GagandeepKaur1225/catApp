@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   ImageBackground,
   Text,
@@ -15,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 const Chat = () => {
+  const [date, setDate] = useState('');
   const data = useSelector(data => data);
   const [loggedId, setLoggedId] = useState('');
   console.log(data);
@@ -28,30 +30,37 @@ const Chat = () => {
   }
 
   function addGroupMembers() {
-    let GUID = 'deafault_2122';
-    let UID = loggedId;
-    let membersList = [
-      new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
-    ];
+    var GUID = 'deafault_2122';
+    var password = '';
+    var groupType = CometChat.GROUP_TYPE.PUBLIC;
 
-    CometChat.addMembersToGroup(GUID, membersList, []).then(
-      response => {
-        console.log('response', response);
+    CometChat.joinGroup(GUID, groupType, password).then(
+      group => {
+        console.log('Group joined successfully:', group);
       },
       error => {
-        console.log('Something went wrong', error);
+        // Alert.alert(error.code);
+        console.log('Group joining failed with exception:', error);
       },
     );
   }
+  useEffect(() => {
+    console.log('entering in useEffcet');
+    (async () => {
+      var  loggedUser = await CometChat.getLoggedinUser();
+      console.log('data in then', loggedUser);
+      setLoggedId(loggedUser.uid);
+    })();
+    // console.log(loggedId, 'logged In user Is');
+  }, []);
 
   useEffect(() => {
-    const loggedUser = CometChat.getLoggedinUser().then(data => {
-      console.log(data, 'whole data of logged user is:');
-      console.log(data.name, 'user logged in is');
-      setLoggedId(data.uid);
-    });
-    addGroupMembers();
-  }, []);
+    console.log(loggedId, 'log for logged user in addmemmbers useEffect');
+    if (loggedId.length !== 0) {
+      addGroupMembers();
+    }
+  }, [loggedId]);
+
   return (
     <View style={style.mainView}>
       <ImageBackground source={Images.background}>

@@ -25,7 +25,6 @@ const Profile = () => {
   console.log(data);
   function logOut() {
     dispatch(clearRedux());
-    navigation.navigate('SignIn');
     CometChat.logout().then(
       () => {
         console.log('Logout completed successfully');

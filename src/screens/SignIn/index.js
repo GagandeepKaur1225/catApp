@@ -132,9 +132,6 @@ const SignIn = () => {
   }
   return (
     <SafeAreaView style={style.mainView}>
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-        <Text>back</Text>
-      </TouchableOpacity>
       <Text style={style.mainHeading}>Sign In</Text>
       <View style={style.innerView}>
         <CustomInput
@@ -162,6 +159,9 @@ const SignIn = () => {
         <Text style={style.buttonText} onPress={handleSubmit}>
           SUBMIT
         </Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+        <Text style={style.signUp}>Don't have Account?Sign Up</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

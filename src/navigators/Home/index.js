@@ -10,10 +10,10 @@ import { useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 const Home = () => {
-  
   return (
     <Tab.Navigator
       initialRouteName="Chat"
+      backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

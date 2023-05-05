@@ -1,9 +1,8 @@
+import { Platform, StyleSheet } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-
-import { StyleSheet } from 'react-native';
 
 export const style = StyleSheet.create({
   textInput: {
@@ -34,7 +33,10 @@ export const style = StyleSheet.create({
     fontWeight: '700',
   },
   chatHeader: {
-    height: heightPercentageToDP('8%'),
+    height:
+      Platform.OS === 'ios'
+        ? heightPercentageToDP('8%')
+        : heightPercentageToDP('10%'),
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -47,6 +49,12 @@ export const style = StyleSheet.create({
     fontWeight: '600',
     color: '#43ba7e',
   },
+  flatList: {
+    height:
+      Platform.OS === 'ios'
+        ? heightPercentageToDP('75%')
+        : heightPercentageToDP('84%'),
+  },
   groupImage: {
     height: '50%',
     width: '23%',
@@ -55,7 +63,10 @@ export const style = StyleSheet.create({
     marginRight: 10,
   },
   sentMsg: {
-    left: widthPercentageToDP('30%'),
+    left:
+      Platform.OS === 'ios'
+        ? widthPercentageToDP('30%')
+        : widthPercentageToDP('35%'),
   },
   receivedMsg: {
     left: widthPercentageToDP('2%'),
@@ -70,5 +81,17 @@ export const style = StyleSheet.create({
     height: '80%',
     aspectRatio: 1,
     marginRight: 10,
+  },
+  filterTime: {
+    alignSelf: 'center',
+    color: '#fff',
+  },
+  filterTimeView: {
+    // borderWidth: 2,
+    width: widthPercentageToDP('30%'),
+    left: widthPercentageToDP('35%'),
+    backgroundColor: '#43ba7e',
+    borderRadius: 4,
+    marginBottom: heightPercentageToDP('2%'),
   },
 });

@@ -39,4 +39,10 @@ export const style = StyleSheet.create({
     left: widthPercentageToDP('2.5%'),
     width: widthPercentageToDP('85%'),
   },
+  signUp: {
+    alignSelf: 'center',
+    padding: 10,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

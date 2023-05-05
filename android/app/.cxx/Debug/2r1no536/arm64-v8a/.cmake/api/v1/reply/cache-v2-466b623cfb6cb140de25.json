@@ -1243,10 +1243,10 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "The CMake toolchain file"
+					"value" : "No help, variable specified on the command line."
 				}
 			],
-			"type" : "FILEPATH",
+			"type" : "UNINITIALIZED",
 			"value" : "/Users/hidayatrehmat/Library/Android/sdk/ndk/23.1.7779620/build/cmake/android.toolchain.cmake"
 		},
 		{
