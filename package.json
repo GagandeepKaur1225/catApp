@@ -33,14 +33,15 @@
     "react-native-image-crop-picker": "^0.39.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-mmkv": "^2.6.2",
+    "react-native-pagination": "^1.5.5",
     "react-native-reanimated": "3.0.2",
     "react-native-responsive-screen": "^1.4.2",
     "react-native-safe-area-context": "^4.5.0",
     "react-native-screens": "^3.20.0",
     "react-native-uuid": "^2.0.1",
     "react-native-vector-icons": "^9.2.0",
-    "react-redux": "^8.0.5",
     "react-native-webrtc": "1.100.0",
+    "react-redux": "^8.0.5",
     "redux-persist": "^6.0.0"
   },
   "devDependencies": {
