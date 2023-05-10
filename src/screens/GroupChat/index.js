@@ -21,6 +21,8 @@ import { style } from './style';
 import { useNavigation } from '@react-navigation/native';
 
 const GroupChat = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastMsgId, setLastMsgId] = useState('');
   const arrayDummy = useRef([]);
@@ -35,6 +37,8 @@ const GroupChat = () => {
   const firstRender = useRef(true);
   const changeInDate = useRef(true);
   const lastMsgRef = useRef('');
+  const lastTextRef = useRef('');
+  const [sendingMsg, setSendingMsg] = useState(false);
   console.log(arrayMessage, 'array check');
   const [messageWritten, setMessageWritten] = useState('');
   function fetchMessages() {
@@ -45,8 +49,10 @@ const GroupChat = () => {
       .build()
       .fetchPrevious();
     messagesRequest.then(res => {
-      setArrayMessage(res);
-      arrayDummy.current = res;
+      const arrayReversed = res;
+      arrayReversed.reverse();
+      setArrayMessage(arrayReversed);
+      arrayDummy.current = arrayReversed;
       setLoading(false);
     });
   }
@@ -107,6 +113,7 @@ const GroupChat = () => {
   };
 
   function LoadMoreChats(messageNumber) {
+    setLoadingPrevious(true);
     console.log('start is reached');
     let GUID = 'deafault_2122';
     let messageId = messageNumber;
@@ -119,22 +126,13 @@ const GroupChat = () => {
       .fetchPrevious();
     messagesRequest.then(res => {
       console.log(res, 'response for more loading chats');
-      setArrayMessage([...res]);
+      let reverseArrayAdded = [];
+      reverseArrayAdded = res;
+      reverseArrayAdded.reverse();
+      setArrayMessage([...arrayMessage, ...res]);
     });
     console.log(arrayMessage, 'array message for loading more chats');
-  }
-  function LoadNextChats(messageNumber) {
-    console.log('end is reached');
-    let GUID = 'deafault_2122';
-    let messageId = messageNumber;
-    let limit = 30;
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setMessageId(messageId)
-      .setLimit(limit)
-      .build()
-      .fetchNext();
-    messagesRequest.then(res => setArrayMessage([...arrayMessage, ...res]));
+    setLoadingPrevious(false);
   }
 
   const onViewableItemsChanged = ({ viewableItems }) => {
@@ -166,9 +164,9 @@ const GroupChat = () => {
   useEffect(() => {
     getGroupMembers();
     fetchMessages();
-    if (reference) {
-      reference.scrollToEnd({ animated: true });
-    }
+    // if (reference) {
+    //   reference.scrollToEnd({ animated: true });
+    // }
     const loggedUser = CometChat.getLoggedinUser().then(data => {
       setLoggedIn(data.name);
       setLoggedId(data.uid);
@@ -177,32 +175,40 @@ const GroupChat = () => {
 
   useEffect(() => {
     if (loading === false) {
-      if (reference && arrayMessage.length !== 0) {
-        reference.scrollToEnd({ animated: true });
-      } else {
-        console.log('reference not found');
-      }
+      console.log('in if');
     } else {
       console.log('loading is true');
     }
   }, [loading, reference]);
 
-  function itemView({ item, index }) {
-    const dateOfCurrentMsg = new Date(item.sentAt * 1000).toDateString();
-    const dateOfPreviousMsg = new Date(
-      lastMsgRef?.current.sentAt * 1000,
-    ).toDateString();
-    function checkDate(dateOfCurrentMsg, dateOfPreviousMsg) {
-      if (dateOfCurrentMsg === dateOfPreviousMsg) {
-        setChangedState(false);
-        changeInDate.current = false;
-      } else {
-        setChangedState(true);
-        changeInDate.current = true;
-      }
+  function checkDate(dateOfCurrentMsg, dateOfPreviousMsg) {
+    if (dateOfCurrentMsg === dateOfPreviousMsg) {
+      setChangedState(false);
+      changeInDate.current = false;
+    } else {
+      setChangedState(true);
+      changeInDate.current = true;
     }
-    checkDate(dateOfCurrentMsg, dateOfPreviousMsg);
+  }
+
+  function itemView({ item, index }) {
+    console.log(index, 'currentIndex of flatlist is:');
+    const dateOfCurrentMsg1 = new Date(
+      arrayMessage[index]?.sentAt * 1000,
+    ).toDateString();
+    const dateOfPrevMsg2 = new Date(
+      arrayMessage[index + 1]?.sentAt * 1000,
+    ).toDateString();
+    checkDate(dateOfCurrentMsg1, dateOfPrevMsg2);
+    console.log(
+      dateOfCurrentMsg1,
+      arrayMessage[index]?.text,
+      dateOfPrevMsg2,
+      arrayMessage[index + 1]?.text,
+      'dates compared come like this',
+    );
     lastMsgRef.current = item;
+    lastTextRef.current = item.text;
     let dateOfMsg = new Date(item.sentAt * 1000).toString();
     let timeOfMsg = new Date(item.sentAt * 1000).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -300,7 +306,7 @@ const GroupChat = () => {
             </TouchableOpacity>
           </View>
         </View>
-        {loading ? (
+        {loading === true || loadingPrevious === true ? (
           <View style={style.flatList}>
             <ActivityIndicator size="large" />
           </View>
@@ -310,15 +316,19 @@ const GroupChat = () => {
               <FlatList
                 data={arrayMessage}
                 renderItem={itemView}
-                keyExtractor={(_, index) => index.toString()}
+                keyExtractor={(_, index) => {
+                  index.toString();
+                  setCurrentIndex(index);
+                }}
                 ref={ref => {
                   setReference(ref);
                 }}
-                viewabilityConfig={viewabilityConfig}
-                viewabilityConfigCallbackPairs={
-                  viewabilityConfigCallbackPairs.current
-                }
-                onEndReached={() => LoadNextChats(lastMsgId)}
+                // viewabilityConfig={viewabilityConfig}
+                // viewabilityConfigCallbackPairs={
+                //   viewabilityConfigCallbackPairs.current
+                // }
+                onEndReached={() => LoadMoreChats(lastMsgId)}
+                onEndReachedThreshold={0.2}
                 inverted
               />
             </ImageBackground>
@@ -342,7 +352,13 @@ const GroupChat = () => {
             }}
             onPress={sendMessages}
           >
-            <Image source={Images.sendButton} style={style.sendButton} />
+            {sendingMsg === false ? (
+              <Image source={Images.sendButton} style={style.sendButton} />
+            ) : (
+              <View style={style.sendButton}>
+                <ActivityIndicator size="large" />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
