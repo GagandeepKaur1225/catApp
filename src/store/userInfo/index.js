@@ -8,6 +8,7 @@ const userData = createSlice({
     phoneNumber: '',
     password: '',
     profilePicture: '',
+    uId: '',
   },
   reducers: {
     addData: (initialState, payload) => {
@@ -22,6 +23,9 @@ const userData = createSlice({
       console.log(payload, 'payload for token is');
       initialState.token = payload.payload;
     },
+    addUId: (initialState, payload) => {
+      initialState.uId = payload.payload.user.uid;
+    },
     clearRedux: initialState => {
       initialState.token = '';
       initialState.name = '';
@@ -32,5 +36,5 @@ const userData = createSlice({
     },
   },
 });
-export const { addData, addToken, clearRedux } = userData.actions;
+export const { addData, addToken, clearRedux, addUId } = userData.actions;
 export default userData.reducer;

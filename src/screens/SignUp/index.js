@@ -110,7 +110,7 @@ const SignUp = () => {
         numberErr.length === 0
       ) {
         Alert.alert('Registered Successfully');
-        console.log(nameUser,"USERnMAE IS")
+        console.log(nameUser, 'USERnMAE IS');
         let authKey = 'a33834be7959bd318261b78f2e7716430bdd369f';
         let uid = nameUser.concat('_app');
         let name = nameUser;
@@ -125,8 +125,10 @@ const SignUp = () => {
           },
           error => {
             console.log('error', error);
+            Alert.alert(error.message);
           },
         );
+        console.log('submit button pressed in signup');
         return await database.get('users').create(data => {
           data.userName = namePerson;
           data.phoneNumber = +numbr;
@@ -158,6 +160,7 @@ const SignUp = () => {
     }
   }
   async function handleSignIn() {
+    console.log('handle Sign In');
     const y = await database.get('users').query();
     console.log(y, 'the values in db');
     navigation.navigate('SignIn');
@@ -240,7 +243,15 @@ const SignUp = () => {
         </View>
         <Text style={style.signIn}>
           Already have an account?
-          <TouchableOpacity onPress={handleSignIn}>
+          <TouchableOpacity
+            hitSlop={{
+              top: 5,
+              left: 20,
+              bottom: 10,
+              right: 20,
+            }}
+            onPress={handleSignIn}
+          >
             <Text>Sign in</Text>
           </TouchableOpacity>
         </Text>

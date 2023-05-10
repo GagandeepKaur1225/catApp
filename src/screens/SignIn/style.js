@@ -28,6 +28,7 @@ export const style = StyleSheet.create({
     height: heightPercentageToDP('4%'),
     backgroundColor: '#87CEEB',
     justifyContent: 'center',
+    marginBottom: '2%',
   },
   buttonText: {
     color: '#fff',

@@ -16,10 +16,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 const Chat = () => {
-  const [date, setDate] = useState('');
   const data = useSelector(data => data);
-  const [loggedId, setLoggedId] = useState('');
-  console.log(data);
+  const loggedId = data.userData.uId;
+  if (loggedId.length !== 0) {
+    addGroupMembers();
+  }
+  console.log(data, 'data from store');
   const navigation = useNavigation();
   const link = data.userData.profilePicture;
   console.log(link, 'link for image is');
@@ -44,22 +46,43 @@ const Chat = () => {
       },
     );
   }
+  async function getLatestMessage() {
+    let GUID = 'deafault_2122';
+    let limit = 30;
+    let latestId = await CometChat.getLastDeliveredMessageId();
+
+    var messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setMessageId(latestId)
+      .setLimit(limit)
+      .build();
+
+    messagesRequest.fetchNext().then(
+      messages => {
+        console.log('Message list fetched:', messages);
+      },
+      error => {
+        console.log('Message fetching failed with error:', error);
+      },
+    );
+  }
   useEffect(() => {
-    console.log('entering in useEffcet');
-    (async () => {
-      var  loggedUser = await CometChat.getLoggedinUser();
-      console.log('data in then', loggedUser);
-      setLoggedId(loggedUser.uid);
-    })();
+    // console.log('entering in useEffcet');
+    // (async () => {
+    //   var loggedUser = await CometChat.getLoggedinUser();
+    //   console.log('data in then', loggedUser);
+    //   setLoggedId(loggedUser.uid);
+    // })();
+    getLatestMessage();
     // console.log(loggedId, 'logged In user Is');
   }, []);
 
-  useEffect(() => {
-    console.log(loggedId, 'log for logged user in addmemmbers useEffect');
-    if (loggedId.length !== 0) {
-      addGroupMembers();
-    }
-  }, [loggedId]);
+  // useEffect(() => {
+  //   console.log(loggedId, 'log for logged user in addmemmbers useEffect');
+  //   if (loggedId.length !== 0) {
+  //     addGroupMembers();
+  //   }
+  // }, [loggedId]);
 
   return (
     <View style={style.mainView}>
@@ -80,7 +103,11 @@ const Chat = () => {
             <Text style={style.groupsHeader}>Groups</Text>
           </View>
           <View>
-            <CustomGroup groupName="default" onPress={goToGroupChat} />
+            <CustomGroup
+              groupName="default"
+              onPress={goToGroupChat}
+              // textToShow={messages}
+            />
           </View>
         </View>
       </ImageBackground>

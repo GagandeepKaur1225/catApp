@@ -53,6 +53,7 @@ export const style = StyleSheet.create({
     alignSelf: 'center',
     marginTop: heightPercentageToDP('3%'),
     fontWeight: '600',
+    padding:10
   },
   errText: {
     color: '#FF0000',

@@ -33,6 +33,7 @@ const Profile = () => {
         console.log('Logout failed with exception:', { error });
       },
     );
+    navigation.navigate('SignUp');
   }
   function goToChat() {
     navigation.navigate('Chat');

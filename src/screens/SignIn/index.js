@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { addData, addToken } from '../../store/userInfo';
+import { addData, addToken, addUId } from '../../store/userInfo';
 
 import { CometChat } from '@cometchat-pro/react-native-chat';
 import CustomInput from '../../components/CustomInput';
@@ -42,6 +42,7 @@ const SignIn = () => {
     };
   }, [nmbrErr]);
   async function handleSubmit() {
+    console.log('sub,it is pressed');
     const r = await checkCredentials();
     console.log(r, 'filtered array is');
     if (r.length === 0) {
@@ -61,6 +62,7 @@ const SignIn = () => {
             CometChat.login(UID, authKey).then(
               user => {
                 console.log('Login Successful:', { user });
+                dispatch(addUId({ user }));
               },
               error => {
                 console.log('Login failed with exception:', { error });
@@ -155,12 +157,19 @@ const SignIn = () => {
         />
         <Text style={style.errText}>{passErr}</Text>
       </View>
-      <TouchableOpacity style={style.submitButton}>
-        <Text style={style.buttonText} onPress={handleSubmit}>
-          SUBMIT
-        </Text>
+      <TouchableOpacity
+        style={style.submitButton}
+        hitSlop={{
+          top: 20,
+          left: 50,
+          bottom: 20,
+          right: 50,
+        }}
+        onPress={handleSubmit}
+      >
+        <Text style={style.buttonText}>SUBMIT</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+      <TouchableOpacity>
         <Text style={style.signUp}>Don't have Account?Sign Up</Text>
       </TouchableOpacity>
     </SafeAreaView>

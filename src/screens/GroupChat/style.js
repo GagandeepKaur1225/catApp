@@ -9,9 +9,11 @@ export const style = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 6,
     padding: 5,
-    width: widthPercentageToDP('80%'),
+    width: widthPercentageToDP('85%'),
     left: widthPercentageToDP('2%'),
-    height: heightPercentageToDP('5%'),
+    height: heightPercentageToDP('7%'),
+    position: 'relative',
+    zIndex: 2
   },
   bottomView: {
     // top: heightPercentageToDP('80%'),
@@ -35,8 +37,8 @@ export const style = StyleSheet.create({
   chatHeader: {
     height:
       Platform.OS === 'ios'
-        ? heightPercentageToDP('8%')
-        : heightPercentageToDP('10%'),
+        ? heightPercentageToDP('10%')
+        : heightPercentageToDP('12%'),
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -53,10 +55,10 @@ export const style = StyleSheet.create({
     height:
       Platform.OS === 'ios'
         ? heightPercentageToDP('75%')
-        : heightPercentageToDP('84%'),
+        : heightPercentageToDP('75%'),
   },
   groupImage: {
-    height: '50%',
+    height: '48%',
     width: '23%',
     aspectRatio: 1,
     marginLeft: 10,
@@ -93,5 +95,16 @@ export const style = StyleSheet.create({
     backgroundColor: '#43ba7e',
     borderRadius: 4,
     marginBottom: heightPercentageToDP('2%'),
+  },
+  backButton: {
+    height: '45%',
+    width: '15%',
+    aspectRatio: 1,
+  },
+  sendButton: {
+    height: '25%',
+    width: '25%',
+    aspectRatio: 1,
+    left: '-16%',
   },
 });

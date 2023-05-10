@@ -3,6 +3,7 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  LogBox,
   SafeAreaView,
   Text,
   TextInput,
@@ -14,29 +15,28 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CometChat } from '@cometchat-pro/react-native-chat';
 import { Images } from '../../shared/images';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { ScrollView } from 'react-native-gesture-handler';
 import { filteredMessages } from '../util/utility';
+import { format } from 'prettier';
 import moment from 'moment';
 import { style } from './style';
+import { useNavigation } from '@react-navigation/native';
 
 const GroupChat = () => {
-  const today = useMemo(() => new Date().toDateString(), []);
-  const yesterday = useMemo(() => {
-    const y = new Date();
-    const r = new Date();
-    y.setDate(y.getDate() - 1);
-    console.log(y.toDateString(), 'y we tried to find out');
-    return y.toDateString();
-  }, []);
+  const navigation = useNavigation();
   const [members, setMembers] = useState([]);
+  const [changedState, setChangedState] = useState(false);
   const [reference, setReference] = useState(null);
   const [sent, setSent] = useState(false);
   const [loggedIn, setLoggedIn] = useState('');
   const [loggedId, setLoggedId] = useState('');
   const [groupId, setGroupId] = useState([]);
-  const [arrayMessage, setArrayMessage] = useState();
-  const [previous, setPrevious] = useState('');
+  const [arrayMessage, setArrayMessage] = useState([]);
   const firstRender = useRef(true);
+  const changeInDate = useRef(true);
+  const lastMsgRef = useRef('');
   console.log(arrayMessage, 'array check');
+  const dateOutside = Date.now();
   const [messageWritten, setMessageWritten] = useState('');
   let userInfo;
   function fetchMessages() {
@@ -102,7 +102,6 @@ const GroupChat = () => {
       return date;
     }
   }
-  let dateOutsideResult;
 
   useEffect(() => {
     getGroupMembers();
@@ -119,16 +118,38 @@ const GroupChat = () => {
       setLoggedId(data.uid);
     });
     console.log(groupId, 'groupId in screen is');
-    if (!groupId.includes(loggedId)) {
-      addGroupMembers();
-    } else {
-      console.log('failure');
-    }
   }, [sent]);
 
-  let previousState;
-  let previousDate;
+  useEffect(() => {
+    if (reference && arrayMessage.length !== 0) {
+      console.log('scrolled to end');
+      reference.scrollToEnd({ animated: true });
+    } else if (!reference) {
+      console.log('reference not found');
+    }
+  }, [reference]);
+
   function itemView({ item, index }) {
+    console.log(item, 'ITEM', lastMsgRef?.current, 'lastMsgRef?.current');
+    const dateOfCurrentMsg = new Date(item.sentAt * 1000).toDateString();
+    const dateOfPreviousMsg = new Date(
+      lastMsgRef?.current.sentAt * 1000,
+    ).toDateString();
+    console.log(dateOfCurrentMsg, dateOfPreviousMsg, 'we are chcek ref values');
+    function checkDate(dateOfCurrentMsg, dateOfPreviousMsg) {
+      if (dateOfCurrentMsg === dateOfPreviousMsg) {
+        setChangedState(false);
+        changeInDate.current = false;
+        console.log('data checked  for equality in if');
+      } else {
+        setChangedState(true);
+        changeInDate.current = true;
+        console.log('data checked  for equality in else');
+      }
+    }
+    checkDate(dateOfCurrentMsg, dateOfPreviousMsg);
+    lastMsgRef.current = item;
+    let dateOfMsg = new Date(item.sentAt * 1000).toString();
     console.log(item, 'message in itemView');
     console.log(index, index - 1, 'indices are');
 
@@ -138,36 +159,21 @@ const GroupChat = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-    let dateOfMsg = new Date(item.sentAt * 1000).toDateString();
-    console.log(previous, 'we got previous state');
+    console.log(dateOfMsg, 'date at which msg was sent');
     let x = compareDate(dateOfMsg.slice(3, 15));
     console.log(x, 'now x becomes');
-    previousState = x;
-    setPrevious(x);
     firstRender.current = false;
     console.log(timeOfMsg, 'time at which msg was sent is');
     return (
       <View style={style.chatBox}>
-        <View style={style.filterTimeView}>
-          <View>
-            {console.log(previousState, x, 'comparisons are')}
-            <Text style={style.filterTime}>{x}</Text>
-          </View>
-
-          {filteredMessages(arrayMessage, today, yesterday).todayMessages
-            .length > 0 && (
+        {changeInDate?.current === true ? (
+          <View style={style.filterTimeView}>
             <View>
-              <Text>Today</Text>
-              {filteredMessages(
-                arrayMessage,
-                today,
-                yesterday,
-              ).todayMessages.map((m, i) => (
-                <Text>{m.text}</Text>
-              ))}
+              <Text>{x}</Text>
             </View>
-          )}
-        </View>
+          </View>
+        ) : null}
+
         <View
           style={
             loggedIn === item.sender.name ? style.sentMsg : style.receivedMsg
@@ -184,6 +190,8 @@ const GroupChat = () => {
   }
 
   function sendMessages() {
+    const dateNow = Date.now();
+    console.log(dateNow, 'time when the button was pressed');
     console.log('send message pressed');
     let receiverID = 'deafault_2122';
     let messageText = messageWritten;
@@ -198,11 +206,17 @@ const GroupChat = () => {
         console.log('Message sent successfully:', message);
         fetchMessages();
         setSent(prev => !prev);
+        const dateThen = Date.now();
+        console.log(
+          dateThen,
+          'time when the button was pressed and the function was called',
+        );
       },
       error => {
         console.log('Message sending failed with error:', error);
       },
     );
+    setMessageWritten('');
   }
 
   function changeOcurred(data) {
@@ -210,92 +224,75 @@ const GroupChat = () => {
     setMessageWritten(data);
   }
 
-  function addGroupMembers() {
-    let GUID = 'deafault_2122';
-    let UID = loggedId;
-    let membersList = [
-      new CometChat.GroupMember(UID, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT),
-    ];
-
-    CometChat.addMembersToGroup(GUID, membersList, []).then(
-      response => {
-        console.log('response', response);
-      },
-      error => {
-        console.log('Something went wrong', error);
-      },
-    );
-  }
-
   return (
     <KeyboardAwareScrollView>
-      {/* <SafeAreaView>
-        <View style={style.chatHeader}>
-          <View style={style.groupHeadingBox}>
-            <Image
-              source={Images.defaultProfile}
-              style={style.groupImage}
-              resizeMode="cover"
-            />
-            <View style={{ flexDirection: 'column' }}>
-              <Text style={style.groupHeading}>DEFAULT GROUP</Text>
-              <Text></Text>
-              <Text>{members.length} participants</Text>
+      <ScrollView>
+        <SafeAreaView>
+          <View style={style.chatHeader}>
+            <View style={style.groupHeadingBox}>
+              <TouchableOpacity>
+                <Image
+                  source={Images.backButton}
+                  style={style.backButton}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <Image
+                source={Images.defaultProfile}
+                style={style.groupImage}
+                resizeMode="cover"
+              />
+              <View style={{ flexDirection: 'column' }}>
+                <Text style={style.groupHeading}>DEFAULT GROUP</Text>
+                <Text></Text>
+                <Text>{members.length} participants</Text>
+              </View>
+            </View>
+            <View style={{ alignSelf: 'center' }}>
+              <TouchableOpacity>
+                <Image
+                  source={Images.participants}
+                  style={style.participantsImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
             </View>
           </View>
-          <View style={{ alignSelf: 'center' }}>
-            <TouchableOpacity>
-              <Image
-                source={Images.participants}
-                style={style.participantsImage}
-                resizeMode="contain"
+          <View style={style.flatList}>
+            <ImageBackground source={Images.groupBackground} resizeMode="cover">
+              <FlatList
+                data={arrayMessage}
+                renderItem={itemView}
+                keyExtractor={(_, index) => index.toString()}
+                ref={ref => {
+                  setReference(ref);
+                }}
               />
+            </ImageBackground>
+          </View>
+          <View style={style.bottomView}>
+            <TextInput
+              placeholder="Enter the message"
+              value={messageWritten}
+              style={style.textInput}
+              onChangeText={data => changeOcurred(data)}
+              multiline={true}
+              clearButtonMode="always"
+            />
+            <TouchableOpacity
+              hitSlop={{
+                top: 30,
+                left: 30,
+                bottom: 30,
+                right: 30,
+              }}
+              onPress={sendMessages}
+            >
+              <Image source={Images.sendButton} style={style.sendButton} />
             </TouchableOpacity>
           </View>
-        </View>
-        <View style={style.flatList}>
-          <ImageBackground source={Images.groupBackground} resizeMode="cover">
-            <FlatList
-              data={arrayMessage}
-              renderItem={itemView}
-              keyExtractor={(_, index) => index.toString()}
-              ref={ref => {
-                setReference(ref);
-              }}
-            />
-          </ImageBackground>
-        </View>
-        <View style={style.bottomView}>
-          <TextInput
-            placeholder="Enter the message"
-            style={style.textInput}
-            onChangeText={data => changeOcurred(data)}
-            multiline={true}
-          />
-          <TouchableOpacity onPress={sendMessages}>
-            <Text>send</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView> */}
-      {filteredMessages(arrayMessage, today, yesterday).todayMessages.length >
-        0 && (
-        <View>
-          <Text>Today</Text>
-          {filteredMessages(arrayMessage, today, yesterday).todayMessages.map(
-            (m, i) => (
-              <Text>{m.text}</Text>
-            ),
-          )}
-          {filteredMessages.yesterdayMessages.length > 0 && (
-            <View>
-              <Text>Yesterday</Text>
-              {filteredMessages.yesterdayMessages.map((m, i) => (
-                <Text>{m.text}</Text>
-              ))}
-            </View>
-          )}
-        </View>
-      )}
+        </SafeAreaView>
+      </ScrollView>
     </KeyboardAwareScrollView>
   );
 };

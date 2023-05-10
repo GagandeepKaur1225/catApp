@@ -17,6 +17,7 @@ const CustomGroup = props => {
         </View>
         <View>
           <Text style={style.groupName}>{props.groupName}</Text>
+          <Text>{props.textToShow}</Text>
         </View>
       </View>
     </TouchableOpacity>
