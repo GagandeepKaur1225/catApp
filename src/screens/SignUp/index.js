@@ -241,20 +241,19 @@ const SignUp = () => {
             <Text style={style.buttonText}>SUBMIT</Text>
           </TouchableOpacity>
         </View>
-        <Text style={style.signIn}>
-          Already have an account?
+        <View style={style.signIn}>
           <TouchableOpacity
-            hitSlop={{
-              top: 5,
-              left: 20,
-              bottom: 10,
-              right: 20,
-            }}
+            // hitSlop={{
+            //   top: 5,
+            //   left: 20,
+            //   bottom: 10,
+            //   right: 20,
+            // }}
             onPress={handleSignIn}
           >
-            <Text>Sign in</Text>
+            <Text> Already have an account?Sign in</Text>
           </TouchableOpacity>
-        </Text>
+        </View>
       </View>
     </ScrollView>
   );

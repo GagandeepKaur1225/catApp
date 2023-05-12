@@ -1,11 +1,8 @@
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Image,
-  ImageBackground,
   SafeAreaView,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -13,36 +10,74 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 
 import { CometChat } from '@cometchat-pro/react-native-chat';
+import CustomFlatlist from './CustomFlatlist';
+import HeaderComponent from '../Header';
 import { Images } from '../../shared/images';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Pagination from 'react-native-pagination';
-import { ScrollView } from 'react-native-gesture-handler';
+import Messages from '../../database/models/messages';
+import { Q } from '@nozbe/watermelondb';
+import database from '../../database';
 import { style } from './style';
-import { useNavigation } from '@react-navigation/native';
 
 const GroupChat = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loadingPrevious, setLoadingPrevious] = useState(false);
+  const refList = useRef();
   const [loading, setLoading] = useState(true);
-  const [lastMsgId, setLastMsgId] = useState('');
   const arrayDummy = useRef([]);
   const [members, setMembers] = useState([]);
-  const [changedState, setChangedState] = useState(false);
-  const [reference, setReference] = useState(null);
-  const [sent, setSent] = useState(false);
   const [loggedIn, setLoggedIn] = useState('');
   const [loggedId, setLoggedId] = useState('');
   const [groupId, setGroupId] = useState([]);
   const [arrayMessage, setArrayMessage] = useState([]);
-  const firstRender = useRef(true);
-  const changeInDate = useRef(true);
-  const lastMsgRef = useRef('');
-  const lastTextRef = useRef('');
   const [sendingMsg, setSendingMsg] = useState(false);
   console.log(arrayMessage, 'array check');
+  console.log('re rendered parent');
   const [messageWritten, setMessageWritten] = useState('');
+  console.log(loading, 'state to be checked outside loading');
+  useEffect(() => {
+    getGroupMembers();
+    console.log('re rendered');
+    fetchMessages();
+    getRealMessages();
+    getMessages();
+  }, []);
+
+  useEffect(() => {
+    if (arrayMessage.length !== 0) {
+      sendMessagesDatabase();
+    }
+  }, [arrayMessage]);
+
+  async function sendMessagesDatabase() {
+    const checkVariable = await database.get('messages').query();
+    console.log(checkVariable, 'values in db are');
+
+    arrayDummy.current?.map(async arrayItem => {
+      console.log(arrayItem, 'item in database function');
+      await database.write(async () => {
+        const record = await database
+          .get('messages')
+          .query(Q.where('idMessage', arrayItem.id))
+          .fetchCount();
+        if (record === 0) {
+          return await database.get('messages').create(data => {
+            data.text = arrayItem.text;
+            data.sentAt = arrayItem.updatedAt;
+            data.idMessage = arrayItem.id;
+            data.sender = arrayItem.sender.name;
+            data.type = arrayItem.type;
+            data.receiverId = arrayItem.receiverId;
+          });
+        }
+      });
+    });
+  }
   function fetchMessages() {
+    console.log('here');
     let GUID = 'deafault_2122';
+    const loggedUser = CometChat.getLoggedinUser().then(data => {
+      setLoggedIn(data.name);
+      setLoggedId(data.uid);
+    });
     let messagesRequest = new CometChat.MessagesRequestBuilder()
       .setGUID(GUID)
       .setLimit(50)
@@ -51,9 +86,10 @@ const GroupChat = () => {
     messagesRequest.then(res => {
       const arrayReversed = res;
       arrayReversed.reverse();
-      setArrayMessage(arrayReversed);
+      // setArrayMessage([...arrayReversed]);
       arrayDummy.current = arrayReversed;
-      setLoading(false);
+      // setLoading(false);
+      sendMessagesDatabase();
     });
   }
   function getGroupMembers() {
@@ -77,172 +113,8 @@ const GroupChat = () => {
     );
   }
 
-  function compareDate(date) {
-    var dateNow = new Date().toDateString();
-    if (date === dateNow.slice(3, 15)) {
-      const today = 'Today';
-      return today;
-    } else if (
-      date.slice(1, 4) === dateNow.slice(4, 7) &&
-      +date.slice(5, 7) === dateNow.slice(8, 10) - 1
-    ) {
-      const yesterday = 'Yesterday';
-      return yesterday;
-    } else {
-      // console.log(
-      //   typeof date,
-      //   date.slice(1, 4),
-      //   dateNow.slice(4, 7),
-      //   date.slice(5, 7),
-      //   dateNow.slice(8, 10),
-      //   'checking varios dates',
-      // );
-      return date;
-    }
-  }
-
-  function ChangedItems({ viewableItems, changed }) {
-    console.log('Visible items are', viewableItems);
-    console.log('Changed in this iteration', changed);
-  }
-
-  const viewabilityConfig = {
-    waitForInteraction: true,
-    // At least one of the viewAreaCoveragePercentThreshold or itemVisiblePercentThreshold is required.w
-    itemVisiblePercentThreshold: 75,
-  };
-
-  function LoadMoreChats(messageNumber) {
-    setLoadingPrevious(true);
-    console.log('start is reached');
-    let GUID = 'deafault_2122';
-    let messageId = messageNumber;
-    let limit = 30;
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setMessageId(messageId)
-      .setLimit(limit)
-      .build()
-      .fetchPrevious();
-    messagesRequest.then(res => {
-      console.log(res, 'response for more loading chats');
-      let reverseArrayAdded = [];
-      reverseArrayAdded = res;
-      reverseArrayAdded.reverse();
-      setArrayMessage([...arrayMessage, ...res]);
-    });
-    console.log(arrayMessage, 'array message for loading more chats');
-    setLoadingPrevious(false);
-  }
-
-  const onViewableItemsChanged = ({ viewableItems }) => {
-    console.log(
-      'viewable items changed',
-      { viewableItems }.viewableItems,
-      'hello',
-      arrayDummy.current,
-    );
-    const valueOfChangedItem = { viewableItems }.viewableItems;
-    console.log(valueOfChangedItem, 'valueOfChangedItem', arrayDummy.current);
-    console.log(
-      arrayDummy.current[0].id,
-      valueOfChangedItem[0].item.id,
-      'checking comaparable Values',
-    );
-    if (arrayDummy.current[0].id === valueOfChangedItem[0].item.id) {
-      LoadMoreChats(arrayDummy.current[0].id);
-    } else {
-      console.log('we cant reach');
-      console.log(arrayMessage, 'array message for checking id of messages');
-    }
-  };
-
-  const viewabilityConfigCallbackPairs = useRef([
-    { viewabilityConfig, onViewableItemsChanged },
-  ]);
-
-  useEffect(() => {
-    getGroupMembers();
-    fetchMessages();
-    // if (reference) {
-    //   reference.scrollToEnd({ animated: true });
-    // }
-    const loggedUser = CometChat.getLoggedinUser().then(data => {
-      setLoggedIn(data.name);
-      setLoggedId(data.uid);
-    });
-  }, [sent]);
-
-  useEffect(() => {
-    if (loading === false) {
-      console.log('in if');
-    } else {
-      console.log('loading is true');
-    }
-  }, [loading, reference]);
-
-  function checkDate(dateOfCurrentMsg, dateOfPreviousMsg) {
-    if (dateOfCurrentMsg === dateOfPreviousMsg) {
-      setChangedState(false);
-      changeInDate.current = false;
-    } else {
-      setChangedState(true);
-      changeInDate.current = true;
-    }
-  }
-
-  function itemView({ item, index }) {
-    console.log(index, 'currentIndex of flatlist is:');
-    const dateOfCurrentMsg1 = new Date(
-      arrayMessage[index]?.sentAt * 1000,
-    ).toDateString();
-    const dateOfPrevMsg2 = new Date(
-      arrayMessage[index + 1]?.sentAt * 1000,
-    ).toDateString();
-    checkDate(dateOfCurrentMsg1, dateOfPrevMsg2);
-    console.log(
-      dateOfCurrentMsg1,
-      arrayMessage[index]?.text,
-      dateOfPrevMsg2,
-      arrayMessage[index + 1]?.text,
-      'dates compared come like this',
-    );
-    lastMsgRef.current = item;
-    lastTextRef.current = item.text;
-    let dateOfMsg = new Date(item.sentAt * 1000).toString();
-    let timeOfMsg = new Date(item.sentAt * 1000).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    let x = compareDate(dateOfMsg.slice(3, 15));
-    firstRender.current = false;
-    setLastMsgId(item.id);
-    return (
-      <View style={style.chatBox}>
-        {changeInDate?.current === true ? (
-          <View style={style.filterTimeView}>
-            <View>
-              <Text>{x}</Text>
-            </View>
-          </View>
-        ) : null}
-
-        <View
-          style={
-            loggedIn === item.sender.name ? style.sentMsg : style.receivedMsg
-          }
-        >
-          <View style={style.listView}>
-            <Text style={style.senderName}>{item.sender.name}</Text>
-            <Text>{item.text}</Text>
-          </View>
-          <Text style={style.chatTime}>{timeOfMsg}</Text>
-        </View>
-      </View>
-    );
-  }
-
   function sendMessages() {
+    setSendingMsg(true);
     let receiverID = 'deafault_2122';
     let messageText = messageWritten;
     let receiverType = CometChat.RECEIVER_TYPE.GROUP;
@@ -251,117 +123,101 @@ const GroupChat = () => {
       messageText,
       receiverType,
     );
+    console.log(sendingMsg, 'state for sending messages is:');
     CometChat.sendMessage(textMessage).then(
       message => {
-        console.log('Message sent successfully:', message);
-        arrayMessage.push(message);
-        setSent(prev => !prev);
-        const dateThen = Date.now();
-        console.log(
-          dateThen,
-          'time when the button was pressed and the function was called',
-        );
+        arrayMessage.unshift(message);
+        setSendingMsg(false);
+        setMessageWritten('');
+        refList.current.scrollToIndex({ index: 0, animated: true });
+        console.log(sendingMsg, 'reversed array after appending is');
       },
       error => {
         console.log('Message sending failed with error:', error);
+        Alert.alert(error.message);
+        setSendingMsg(false);
       },
     );
-    setMessageWritten('');
   }
 
   function changeOcurred(data) {
     setMessageWritten(data);
   }
 
+  async function getMessages() {
+    setLoading(true);
+    const checkVariable = await database
+      .get('messages')
+      .query(Q.sortBy('sentAt', Q.asc));
+    console.log(checkVariable.reverse(), 'chacking data to retrieve');
+    const arrayReverse = checkVariable;
+    setArrayMessage(arrayReverse);
+    setLoading(false);
+  }
+
+  function getRealMessages() {
+    let listenerID = 'deafault_2122';
+
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTextMessageReceived: textMessage => {
+          console.log('Text message received successfully', textMessage);
+        },
+        onMediaMessageReceived: mediaMessage => {
+          console.log('Media message received successfully', mediaMessage);
+        },
+        onCustomMessageReceived: customMessage => {
+          console.log('Custom message received successfully', customMessage);
+        },
+      }),
+    );
+  }
+
   return (
-    <SafeAreaView>
-      <KeyboardAwareScrollView>
-        <View style={style.chatHeader}>
-          <View style={style.groupHeadingBox}>
-            <TouchableOpacity>
-              <Image
-                source={Images.backButton}
-                style={style.backButton}
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-            <Image
-              source={Images.defaultProfile}
-              style={style.groupImage}
-              resizeMode="cover"
-            />
-            <View style={{ flexDirection: 'column' }}>
-              <Text style={style.groupHeading}>DEFAULT GROUP</Text>
-              <Text></Text>
-              <Text>{members.length} participants</Text>
-            </View>
-          </View>
-          <View style={{ alignSelf: 'center' }}>
-            <TouchableOpacity>
-              <Image
-                source={Images.participants}
-                style={style.participantsImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-        {loading === true || loadingPrevious === true ? (
-          <View style={style.flatList}>
-            <ActivityIndicator size="large" />
-          </View>
-        ) : (
-          <View style={style.flatList}>
-            <ImageBackground source={Images.groupBackground} resizeMode="cover">
-              <FlatList
-                data={arrayMessage}
-                renderItem={itemView}
-                keyExtractor={(_, index) => {
-                  index.toString();
-                  setCurrentIndex(index);
-                }}
-                ref={ref => {
-                  setReference(ref);
-                }}
-                // viewabilityConfig={viewabilityConfig}
-                // viewabilityConfigCallbackPairs={
-                //   viewabilityConfigCallbackPairs.current
-                // }
-                onEndReached={() => LoadMoreChats(lastMsgId)}
-                onEndReachedThreshold={0.2}
-                inverted
-              />
-            </ImageBackground>
-          </View>
-        )}
-        <View style={style.bottomView}>
-          <TextInput
-            placeholder="Enter the message"
-            value={messageWritten}
-            style={style.textInput}
-            onChangeText={data => changeOcurred(data)}
-            multiline={true}
-            clearButtonMode="always"
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <HeaderComponent members={members.length} />
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="always"
+          behavior="padding"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flex: 1 }}
+        >
+          <CustomFlatlist
+            arrayMessage={arrayMessage}
+            ref={ref => (refList.current = ref)}
           />
-          <TouchableOpacity
-            hitSlop={{
-              top: 30,
-              left: 30,
-              bottom: 30,
-              right: 30,
-            }}
-            onPress={sendMessages}
-          >
-            {sendingMsg === false ? (
-              <Image source={Images.sendButton} style={style.sendButton} />
-            ) : (
-              <View style={style.sendButton}>
-                <ActivityIndicator size="large" />
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAwareScrollView>
+          <View style={style.bottomView}>
+            <TextInput
+              placeholder="Enter the message"
+              value={messageWritten}
+              style={style.textInput}
+              onChangeText={data => changeOcurred(data)}
+              multiline={true}
+              // underlineColorAndroid="transparent"
+            />
+            <TouchableOpacity
+              hitSlop={{
+                top: 30,
+                left: 5,
+                bottom: 30,
+                right: 30,
+              }}
+              onPress={sendMessages}
+            >
+              {console.log(sendingMsg, 'chacking the loader state')}
+              {sendingMsg === false ? (
+                <Image source={Images.sendButton} style={style.sendButton} />
+              ) : (
+                <View style={style.sendButton}>
+                  <ActivityIndicator size="large" />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareScrollView>
+      </View>
     </SafeAreaView>
   );
 };

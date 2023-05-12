@@ -35,7 +35,7 @@ export const style = StyleSheet.create({
     aspectRatio: 1,
   },
   groupImage: {
-    backgroundColor: '#000',
+    // backgroundColor: '#000',
     borderRadius: 35,
   },
 });

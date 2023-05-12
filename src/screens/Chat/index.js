@@ -67,22 +67,8 @@ const Chat = () => {
     );
   }
   useEffect(() => {
-    // console.log('entering in useEffcet');
-    // (async () => {
-    //   var loggedUser = await CometChat.getLoggedinUser();
-    //   console.log('data in then', loggedUser);
-    //   setLoggedId(loggedUser.uid);
-    // })();
     getLatestMessage();
-    // console.log(loggedId, 'logged In user Is');
   }, []);
-
-  // useEffect(() => {
-  //   console.log(loggedId, 'log for logged user in addmemmbers useEffect');
-  //   if (loggedId.length !== 0) {
-  //     addGroupMembers();
-  //   }
-  // }, [loggedId]);
 
   return (
     <View style={style.mainView}>
@@ -103,11 +89,7 @@ const Chat = () => {
             <Text style={style.groupsHeader}>Groups</Text>
           </View>
           <View>
-            <CustomGroup
-              groupName="default"
-              onPress={goToGroupChat}
-              // textToShow={messages}
-            />
+            <CustomGroup groupName="default" onPress={goToGroupChat} />
           </View>
         </View>
       </ImageBackground>

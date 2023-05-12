@@ -1,6 +1,6 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 export default appSchema({
-  version: 1,
+  version: 5,
   tables: [
     tableSchema({
       name: 'users',
@@ -10,6 +10,17 @@ export default appSchema({
         { name: 'email', type: 'string' },
         { name: 'password', type: 'string' },
         { name: 'profilePicture', type: 'string' },
+      ],
+    }),
+    tableSchema({
+      name: 'messages',
+      columns: [
+        { name: 'text', type: 'string' },
+        { name: 'sentAt', type: 'number' },
+        { name: 'idMessage', type: 'string' },
+        { name: 'sender', type: 'string' },
+        { name: 'type', type: 'string' },
+        { name: 'receiverId', type: 'string' },
       ],
     }),
   ],

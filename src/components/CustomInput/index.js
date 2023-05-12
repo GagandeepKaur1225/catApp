@@ -29,7 +29,15 @@ const CustomInput = props => {
         />
         <>
           {props.Sensitive ? (
-            <TouchableOpacity onPress={props.onPressImage}>
+            <TouchableOpacity
+              onPress={props.onPressImage}
+              hitSlop={{
+                top: 5,
+                left: 20,
+                bottom: 10,
+                right: 20,
+              }}
+            >
               {props.state ? (
                 <Image source={Images.hidepass} style={style.image} />
               ) : (

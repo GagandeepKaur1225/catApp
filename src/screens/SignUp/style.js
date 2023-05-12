@@ -51,9 +51,9 @@ export const style = StyleSheet.create({
   signIn: {
     flexDirection: 'row',
     alignSelf: 'center',
-    marginTop: heightPercentageToDP('3%'),
+    marginTop: heightPercentageToDP('2%'),
     fontWeight: '600',
-    padding:10
+    padding:2
   },
   errText: {
     color: '#FF0000',

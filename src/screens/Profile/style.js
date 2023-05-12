@@ -17,7 +17,7 @@ export const style = StyleSheet.create({
     padding: 8,
     backgroundColor: '#43ba7e',
     borderRadius: 6,
-    height: heightPercentageToDP('5%'),
+    height: heightPercentageToDP('7%'),
     width: widthPercentageToDP('30%'),
     justifyContent: 'center',
     alignItems: 'center',

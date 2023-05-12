@@ -169,7 +169,7 @@ const SignIn = () => {
       >
         <Text style={style.buttonText}>SUBMIT</Text>
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
         <Text style={style.signUp}>Don't have Account?Sign Up</Text>
       </TouchableOpacity>
     </SafeAreaView>
