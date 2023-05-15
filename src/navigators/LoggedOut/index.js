@@ -18,7 +18,6 @@ const LoggedOut = () => {
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="SignIn" component={SignIn} />
         <Stack.Screen name="Home" component={Home} />
-
       </Stack.Navigator>
     </NavigationContainer>
   );

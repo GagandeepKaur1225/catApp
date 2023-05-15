@@ -35,3 +35,7 @@
 11786	11863	1683727079	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/intermediates/cxx/RelWithDebInfo/2x3e4z32/obj/x86_64/libreact_codegen_rnscreens.so	26b250ac166d9172
 2	18525	1683727086	CMakeFiles/appmodules.dir/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/generated/rncli/src/main/jni/rncli.cpp.o	5b9fb834256bce75
 18525	18638	1683727086	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/build/intermediates/cxx/RelWithDebInfo/2x3e4z32/obj/x86_64/libappmodules.so	8c476bc66ce208c2
+1	14	0	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/RelWithDebInfo/2x3e4z32/x86_64/CMakeFiles/cmake.verify_globs	2d86bbfbaa4cf23f
+14	115	1684151522	build.ninja	aeaa09a5b5096531
+0	14	0	/Users/hidayatrehmat/Documents/gagan/chatApp/android/app/.cxx/RelWithDebInfo/2x3e4z32/x86_64/CMakeFiles/cmake.verify_globs	2d86bbfbaa4cf23f
+0	68	0	clean	975d4763b6e174da

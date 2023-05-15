@@ -14,9 +14,9 @@ export const style = StyleSheet.create({
     zIndex: 2,
   },
   bottomView: {
-    position: 'absolute',
-    bottom: 0,
-    // borderWidth: 2,
+    // position: 'absolute',
+    // bottom: 0,
+    // flex: 1,
     borderRadius: 2,
     padding: 5,
     flexDirection: 'row',
@@ -56,10 +56,12 @@ export const style = StyleSheet.create({
     color: '#43ba7e',
   },
   flatList: {
-    height:
-      Platform.OS === 'ios'
-        ? heightPercentageToDP('75%')
-        : heightPercentageToDP('75%'),
+    // height:
+    //   Platform.OS === 'ios'
+    //     ? heightPercentageToDP('75%')
+    //     : heightPercentageToDP('75%'),
+    borderWidth: 2,
+    flex:1
   },
   groupImage: {
     height: '48%',

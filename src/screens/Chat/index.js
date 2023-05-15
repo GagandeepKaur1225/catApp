@@ -32,7 +32,7 @@ const Chat = () => {
   }
 
   function addGroupMembers() {
-    var GUID = 'deafault_2122';
+    var GUID = 'defaultchat_group';
     var password = '';
     var groupType = CometChat.GROUP_TYPE.PUBLIC;
 

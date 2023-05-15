@@ -20,44 +20,19 @@ const CustomFlatlist = ({ ...props }) => {
   const arrayDummy = useRef('');
   const lastMsgId = useRef('');
   const changeInDate = useRef('');
+  const lastMsgTimeRef = useRef('');
   const [loggedId, setLoggedId] = useState();
   const [loggedIn, setLoggedIn] = useState();
+  const [page, setPage] = useState(1);
   console.log('flatlst rendered again');
 
   useEffect(() => {
-    fetchMessages();
     const loggedUser = CometChat.getLoggedinUser().then(data => {
       setLoggedIn(data.name);
-      setLoggedId(data.uid);
-    });
-    getMessages();
-  }, []);
-
-  async function getMessages() {
-    const checkVariable = await database
-      .get('messages')
-      .query(Q.sortBy('sentAt', Q.asc));
-    console.log(checkVariable.reverse(), 'chacking data to retrieve');
-    setArrayMessage(checkVariable.reverse());
-    setLoading(false);
-  }
-
-  function fetchMessages() {
-    console.log('here');
-    let GUID = 'deafault_2122';
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(50)
-      .build()
-      .fetchPrevious();
-    messagesRequest.then(res => {
-      const arrayReversed = res;
-      arrayReversed.reverse();
-      setArrayMessage([...arrayReversed]);
-      arrayDummy.current = arrayReversed;
+      setArrayMessage(props.arrayMessage);
       setLoading(false);
     });
-  }
+  }, []);
 
   function checkDate(dateOfCurrentMsg, dateOfPreviousMsg) {
     if (dateOfCurrentMsg === dateOfPreviousMsg) {
@@ -67,74 +42,7 @@ const CustomFlatlist = ({ ...props }) => {
     }
   }
 
-  async function sendMessagesDatabase() {
-    arrayMessage?.map(async arrayItem => {
-      console.log(arrayItem, 'item in database function');
-      await database.write(async () => {
-        const record = await database
-          .get('messages')
-          .query(Q.where('idMessage', arrayItem.id))
-          .fetchCount();
-        if (record === 0) {
-          return await database.get('messages').create(data => {
-            data.text = arrayItem.text;
-            data.sentAt = arrayItem.updatedAt;
-            data.idMessage = arrayItem.id;
-            data.sender = arrayItem.sender.name;
-            data.type = arrayItem.type;
-            data.receiverId = arrayItem.receiverId;
-          });
-        }
-      });
-    });
-  }
-
-  function LoadMoreChats(messageNumber) {
-    setLoadingMore(true);
-    console.log('start is reached');
-    let GUID = 'deafault_2122';
-    let messageId = messageNumber;
-    let limit = 30;
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setMessageId(messageId)
-      .setLimit(limit)
-      .build()
-      .fetchPrevious();
-    messagesRequest.then(res => {
-      let reverseArrayAdded = [];
-      reverseArrayAdded = res;
-      console.log(res, 'response was');
-      reverseArrayAdded.reverse();
-      setArrayMessage([...arrayMessage, ...res]);
-      setLoadingMore(false);
-      res?.map(async arrayItem => {
-        await database.write(async () => {
-          console.log('got it');
-          const record = await database
-            .get('messages')
-            .query(Q.where('idMessage', arrayItem.id))
-            .fetchCount();
-          if (record === 0) {
-            console.log('now updating response to local');
-            return await database.get('messages').create(data => {
-              data.text = arrayItem.text;
-              data.sentAt = arrayItem.updatedAt;
-              data.idMessage = arrayItem.id;
-              data.sender = arrayItem.sender.name;
-              data.type = arrayItem.type;
-              data.receiverId = arrayItem.receiverId;
-            });
-          } else {
-            console.log('data in else');
-          }
-        });
-      });
-    });
-  }
-
   function itemView({ item, index }) {
-    console.log(item, 'item in custom component');
     const dateOfCurrentMsg1 = new Date(
       arrayMessage[index]?.sentAt * 1000,
     ).toDateString();
@@ -149,6 +57,7 @@ const CustomFlatlist = ({ ...props }) => {
     });
     let x = compareDate(dateOfMsg.slice(3, 15));
     lastMsgId.current = item.messageId;
+    lastMsgTimeRef.current = item.sentAt;
     return (
       <View style={style.chatBox}>
         {changeInDate?.current === true ? (
@@ -159,16 +68,87 @@ const CustomFlatlist = ({ ...props }) => {
           </View>
         ) : null}
 
-        <View
-          style={loggedIn === item?.sender ? style.sentMsg : style.receivedMsg}
-        >
-          <View style={style.listView}>
-            <Text style={style.senderName}>{item?.sender}</Text>
-            <Text>{item.text}</Text>
+        {item?.sender?.name ? (
+          <View
+            style={
+              loggedIn === item?.sender?.name
+                ? style.sentMsg
+                : style.receivedMsg
+            }
+          >
+            <View style={style.listView}>
+              {item?.sender?.name ? (
+                <Text style={style.senderName}>{item?.sender?.name}</Text>
+              ) : (
+                <Text style={style.senderName}>{item?.sender}</Text>
+              )}
+              <Text>{item.text}</Text>
+            </View>
+            <Text style={style.chatTime}>{timeOfMsg}</Text>
           </View>
-          <Text style={style.chatTime}>{timeOfMsg}</Text>
-        </View>
+        ) : (
+          <View
+            style={
+              loggedIn === item?.sender ? style.sentMsg : style.receivedMsg
+            }
+          >
+            <View style={style.listView}>
+              {item?.sender?.name ? (
+                <Text style={style.senderName}>{item?.sender?.name}</Text>
+              ) : (
+                <Text style={style.senderName}>{item?.sender}</Text>
+              )}
+              <Text>{item.text}</Text>
+            </View>
+            <Text style={style.chatTime}>{timeOfMsg}</Text>
+          </View>
+        )}
       </View>
+    );
+  }
+
+  function loadingChats(lastTime) {
+    setPage(page + 1);
+    console.log(lastTime, 'last time for the message is:');
+    const GUID = 'defaultchat_group';
+    const LIMIT = 50; // number of messages to fetch
+    const TIMESTAMP = lastTime; // timestamp before which messages are to be fetched
+
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setTimestamp(TIMESTAMP)
+      .setLimit(LIMIT)
+      .build();
+
+    messagesRequest.fetchPrevious().then(
+      messages => {
+        console.log('Messages fetched:', messages);
+        setLoadingMore(false);
+        messages?.map(async arrayItem => {
+          await database.write(async () => {
+            const record = await database
+              .get('messages')
+              .query(Q.where('idMessage', arrayItem.id))
+              .fetchCount();
+            if (record === 0) {
+              console.log('now updating response to local');
+              return await database.get('messages').create(data => {
+                data.text = arrayItem.text;
+                data.sentAt = arrayItem.updatedAt;
+                data.idMessage = arrayItem.id;
+                data.sender = arrayItem.sender.name;
+                data.type = arrayItem.type;
+                data.receiverId = arrayItem.receiverId;
+              });
+            } else {
+              console.log('data in else');
+            }
+          });
+        });
+      },
+      error => {
+        console.log('Message fetching failed with error:', error);
+      },
     );
   }
 
@@ -188,33 +168,55 @@ const CustomFlatlist = ({ ...props }) => {
     }
   }
 
+  const renderFooter = () => {
+    return (
+      loadingMore && (
+        <View style={{ alignItems: 'center' }}>
+          <ActivityIndicator animating size="large" />
+        </View>
+      )
+    );
+  };
+
   return (
-    <View>
-      <ImageBackground source={Images.groupBackground} resizeMode="cover">
-        {loading === true ? (
-          <View style={style.flatList}>
-            <ActivityIndicator size="large" />
-          </View>
-        ) : (
-          <View style={style.flatList}>
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={props.arrayMessage}
-              renderItem={itemView}
-              keyExtractor={(_, index) => {
-                index.toString();
-              }}
-              ref={props.ref}
-              onEndReached={() => {
-                LoadMoreChats(lastMsgId.current);
-              }}
-              onEndReachedThreshold={0.2}
-              inverted={true}
-            />
-          </View>
-        )}
-      </ImageBackground>
-    </View>
+    <>
+      {/* <ImageBackground source={Images.groupBackground} > */}
+      {loading === true ? (
+        <View style={style.flatList}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        // <View style={style.flatList}>
+        //
+        <>
+          {/* <ImageBackground source={Images.groupBackground}> */}
+          <FlatList
+            style={{ flex: 1 }}
+            contentContainerStyle={{ marginBottom: 5 }}
+            showsVerticalScrollIndicator={false}
+            data={props.arrayMessage}
+            renderItem={itemView}
+            keyExtractor={(_, index) => {
+              index.toString();
+            }}
+            ref={props.ref}
+            // onEndReached={props.onEndReached(lastMsgTimeRef)}
+            onEndReachedThreshold={0.5}
+            onEndReached={() => {
+              setLoadingMore(true);
+              console.log(lastMsgTimeRef.current, 'here the last time is');
+              loadingChats(lastMsgTimeRef.current);
+            }}
+            inverted={true}
+            ListFooterComponent={renderFooter}
+          />
+          {/* </ImageBackground> */}
+        </>
+        //
+        // </View>
+      )}
+      {/* </ImageBackground> */}
+    </>
   );
 };
 

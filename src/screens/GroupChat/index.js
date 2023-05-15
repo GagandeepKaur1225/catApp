@@ -2,6 +2,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   SafeAreaView,
   TextInput,
   TouchableOpacity,
@@ -18,8 +19,9 @@ import Messages from '../../database/models/messages';
 import { Q } from '@nozbe/watermelondb';
 import database from '../../database';
 import { style } from './style';
+import withObservables from '@nozbe/with-observables';
 
-const GroupChat = () => {
+const GroupChat = ({ messageRetrieve }) => {
   const refList = useRef();
   const [loading, setLoading] = useState(true);
   const arrayDummy = useRef([]);
@@ -29,23 +31,21 @@ const GroupChat = () => {
   const [groupId, setGroupId] = useState([]);
   const [arrayMessage, setArrayMessage] = useState([]);
   const [sendingMsg, setSendingMsg] = useState(false);
-  console.log(arrayMessage, 'array check');
   console.log('re rendered parent');
   const [messageWritten, setMessageWritten] = useState('');
   console.log(loading, 'state to be checked outside loading');
   useEffect(() => {
     getGroupMembers();
-    console.log('re rendered');
-    fetchMessages();
     getRealMessages();
-    getMessages();
+    console.log('re rendered using effect of parent', loading);
+    fetchMessages();
   }, []);
 
   useEffect(() => {
-    if (arrayMessage.length !== 0) {
-      sendMessagesDatabase();
+    if (arrayMessage.length) {
+      getMessages();
     }
-  }, [arrayMessage]);
+  }, [messageRetrieve]);
 
   async function sendMessagesDatabase() {
     const checkVariable = await database.get('messages').query();
@@ -60,6 +60,7 @@ const GroupChat = () => {
           .fetchCount();
         if (record === 0) {
           return await database.get('messages').create(data => {
+            console.log(arrayItem.sentAt, 'sentAt in database call');
             data.text = arrayItem.text;
             data.sentAt = arrayItem.updatedAt;
             data.idMessage = arrayItem.id;
@@ -70,10 +71,11 @@ const GroupChat = () => {
         }
       });
     });
+    getMessages();
   }
   function fetchMessages() {
-    console.log('here');
-    let GUID = 'deafault_2122';
+    console.log('here fetch messages is re rendered');
+    let GUID = 'defaultchat_group';
     const loggedUser = CometChat.getLoggedinUser().then(data => {
       setLoggedIn(data.name);
       setLoggedId(data.uid);
@@ -84,16 +86,13 @@ const GroupChat = () => {
       .build()
       .fetchPrevious();
     messagesRequest.then(res => {
-      const arrayReversed = res;
-      arrayReversed.reverse();
-      // setArrayMessage([...arrayReversed]);
-      arrayDummy.current = arrayReversed;
-      // setLoading(false);
+      arrayDummy.current = res;
+      console.log(arrayDummy.current, 'response in ref');
       sendMessagesDatabase();
     });
   }
   function getGroupMembers() {
-    let GUID = 'deafault_2122';
+    let GUID = 'defaultchat_group';
     let limit = 30;
     let groupMembersRequest = new CometChat.GroupMembersRequestBuilder(GUID)
       .setLimit(limit)
@@ -113,9 +112,9 @@ const GroupChat = () => {
     );
   }
 
-  function sendMessages() {
+  async function sendMessages(e) {
     setSendingMsg(true);
-    let receiverID = 'deafault_2122';
+    let receiverID = 'defaultchat_group';
     let messageText = messageWritten;
     let receiverType = CometChat.RECEIVER_TYPE.GROUP;
     let textMessage = new CometChat.TextMessage(
@@ -126,10 +125,14 @@ const GroupChat = () => {
     console.log(sendingMsg, 'state for sending messages is:');
     CometChat.sendMessage(textMessage).then(
       message => {
+        console.log(message, arrayMessage, 'message to be written is:');
+        // setArrayMessage([...arrayMessage, message]);
         arrayMessage.unshift(message);
         setSendingMsg(false);
+        arrayDummy.current = message;
+        sendMessagesDatabase();
+        // refList.current.scrollToIndex({ index: 0, animated: true });
         setMessageWritten('');
-        refList.current.scrollToIndex({ index: 0, animated: true });
         console.log(sendingMsg, 'reversed array after appending is');
       },
       error => {
@@ -141,28 +144,31 @@ const GroupChat = () => {
   }
 
   function changeOcurred(data) {
+    console.log(data, 'data typed is');
     setMessageWritten(data);
   }
 
   async function getMessages() {
-    setLoading(true);
     const checkVariable = await database
       .get('messages')
       .query(Q.sortBy('sentAt', Q.asc));
     console.log(checkVariable.reverse(), 'chacking data to retrieve');
     const arrayReverse = checkVariable;
+    console.log(arrayReverse, 'array to be sent');
     setArrayMessage(arrayReverse);
     setLoading(false);
+    console.log(arrayMessage, 'the array to be displayed is:');
   }
 
   function getRealMessages() {
-    let listenerID = 'deafault_2122';
+    let listenerID = 'defaultchat_group';
 
     CometChat.addMessageListener(
       listenerID,
       new CometChat.MessageListener({
         onTextMessageReceived: textMessage => {
           console.log('Text message received successfully', textMessage);
+          arrayMessage.unshift(textMessage);
         },
         onMediaMessageReceived: mediaMessage => {
           console.log('Media message received successfully', mediaMessage);
@@ -178,48 +184,59 @@ const GroupChat = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
         <HeaderComponent members={members.length} />
-        <KeyboardAwareScrollView
+        {/* <KeyboardAwareScrollView
           keyboardShouldPersistTaps="always"
           behavior="padding"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flex: 1 }}
-        >
+          keyboardVerticalOffset={Platform.select({ ios: 100, android: 500 })}
+        > */}
+        {loading === true ? (
+          <View style={style.flatList}>
+            <ActivityIndicator size="large" />
+          </View>
+        ) : (
           <CustomFlatlist
             arrayMessage={arrayMessage}
             ref={ref => (refList.current = ref)}
           />
-          <View style={style.bottomView}>
-            <TextInput
-              placeholder="Enter the message"
-              value={messageWritten}
-              style={style.textInput}
-              onChangeText={data => changeOcurred(data)}
-              multiline={true}
-              // underlineColorAndroid="transparent"
-            />
-            <TouchableOpacity
-              hitSlop={{
-                top: 30,
-                left: 5,
-                bottom: 30,
-                right: 30,
-              }}
-              onPress={sendMessages}
-            >
-              {console.log(sendingMsg, 'chacking the loader state')}
-              {sendingMsg === false ? (
-                <Image source={Images.sendButton} style={style.sendButton} />
-              ) : (
-                <View style={style.sendButton}>
-                  <ActivityIndicator size="large" />
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAwareScrollView>
+        )}
+        <View style={style.bottomView}>
+          <TextInput
+            placeholder="Enter the message"
+            value={messageWritten}
+            style={style.textInput}
+            onChangeText={data => changeOcurred(data)}
+            multiline={true}
+          />
+          <TouchableOpacity
+            hitSlop={{
+              top: 30,
+              left: 5,
+              bottom: 30,
+              right: 30,
+            }}
+            onPress={sendMessages}
+          >
+            {console.log(sendingMsg, 'chacking the loader state')}
+            {sendingMsg === false ? (
+              <Image source={Images.sendButton} style={style.sendButton} />
+            ) : (
+              <View style={style.sendButton}>
+                <ActivityIndicator size="large" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+        {/* </KeyboardAwareScrollView> */}
       </View>
     </SafeAreaView>
   );
 };
 
-export default GroupChat;
+const enhance = withObservables([''], () => {
+  return {
+    messageRetrieve: database.get('messages').query().observe(),
+  };
+});
+export default enhance(GroupChat);
