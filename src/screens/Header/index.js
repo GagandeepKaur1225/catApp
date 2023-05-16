@@ -16,6 +16,12 @@ const HeaderComponent = props => {
               source={Images.backButton}
               style={style.backButton}
               resizeMode="cover"
+              hitSlop={{
+                top: 30,
+                left: 5,
+                bottom: 30,
+                right: 30,
+              }}
             />
           </TouchableOpacity>
           <Image

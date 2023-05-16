@@ -6,6 +6,6 @@ export const Images = {
   groupBackground: require('../assets/images/chatBack.jpg'),
   participants: require('../assets/images/trans.png'),
   svgLink: require('../assets/images/participants.svg'),
-  backButton: require('../assets/images/backButtonImage.png'),
+  backButton: require('../assets/images/backPng.png'),
   sendButton: require('../assets/images/sendMsg.jpeg'),
 };

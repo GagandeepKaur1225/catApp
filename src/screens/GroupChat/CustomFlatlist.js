@@ -2,6 +2,7 @@ import {
   ActivityIndicator,
   FlatList,
   ImageBackground,
+  Platform,
   Text,
   View,
 } from 'react-native';
@@ -43,6 +44,7 @@ const CustomFlatlist = ({ ...props }) => {
   }
 
   function itemView({ item, index }) {
+    console.log(item, index, 'checking re rendering of items');
     const dateOfCurrentMsg1 = new Date(
       arrayMessage[index]?.sentAt * 1000,
     ).toDateString();
@@ -180,42 +182,36 @@ const CustomFlatlist = ({ ...props }) => {
 
   return (
     <>
-      {/* <ImageBackground source={Images.groupBackground} > */}
       {loading === true ? (
         <View style={style.flatList}>
           <ActivityIndicator size="large" />
         </View>
       ) : (
-        // <View style={style.flatList}>
-        //
         <>
-          {/* <ImageBackground source={Images.groupBackground}> */}
-          <FlatList
-            style={{ flex: 1 }}
-            contentContainerStyle={{ marginBottom: 5 }}
-            showsVerticalScrollIndicator={false}
-            data={props.arrayMessage}
-            renderItem={itemView}
-            keyExtractor={(_, index) => {
-              index.toString();
-            }}
-            ref={props.ref}
-            // onEndReached={props.onEndReached(lastMsgTimeRef)}
-            onEndReachedThreshold={0.5}
-            onEndReached={() => {
-              setLoadingMore(true);
-              console.log(lastMsgTimeRef.current, 'here the last time is');
-              loadingChats(lastMsgTimeRef.current);
-            }}
-            inverted={true}
-            ListFooterComponent={renderFooter}
-          />
-          {/* </ImageBackground> */}
+          <ImageBackground source={Images.groupBackground} style={{ flex: 1 }}>
+            <FlatList
+              style={{ flex: 1 }}
+              contentContainerStyle={{ marginBottom: 5 }}
+              showsVerticalScrollIndicator={false}
+              data={props.arrayMessage}
+              renderItem={itemView}
+              keyExtractor={(_, index) => {
+                index.toString();
+              }}
+              ref={props.ref}
+              onEndReachedThreshold={0.5}
+              onEndReached={() => {
+                console.log('we reached at end');
+                setLoadingMore(true);
+                console.log(lastMsgTimeRef.current, 'here the last time is');
+                loadingChats(lastMsgTimeRef.current);
+              }}
+              inverted={true}
+              ListFooterComponent={renderFooter}
+            />
+          </ImageBackground>
         </>
-        //
-        // </View>
       )}
-      {/* </ImageBackground> */}
     </>
   );
 };

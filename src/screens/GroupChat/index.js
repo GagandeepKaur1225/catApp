@@ -2,7 +2,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Platform,
   SafeAreaView,
   TextInput,
   TouchableOpacity,
@@ -14,8 +13,6 @@ import { CometChat } from '@cometchat-pro/react-native-chat';
 import CustomFlatlist from './CustomFlatlist';
 import HeaderComponent from '../Header';
 import { Images } from '../../shared/images';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Messages from '../../database/models/messages';
 import { Q } from '@nozbe/watermelondb';
 import database from '../../database';
 import { style } from './style';
@@ -35,22 +32,30 @@ const GroupChat = ({ messageRetrieve }) => {
   const [messageWritten, setMessageWritten] = useState('');
   console.log(loading, 'state to be checked outside loading');
   useEffect(() => {
+    const loggedUser = CometChat.getLoggedinUser().then(data => {
+      setLoggedIn(data.name);
+      setLoggedId(data.uid);
+    });
     getGroupMembers();
+    // getDataFromDB();
     getRealMessages();
     console.log('re rendered using effect of parent', loading);
     fetchMessages();
+    return () => {
+      var listenerID = 'defaultchat_group';
+
+      CometChat.removeMessageListener(listenerID);
+    };
   }, []);
 
   useEffect(() => {
-    if (arrayMessage.length) {
-      getMessages();
-    }
+    console.log(messageRetrieve, 'message retrieve gives us value');
   }, [messageRetrieve]);
 
-  async function sendMessagesDatabase() {
+  async function sendMessagesDatabase(array) {
     const checkVariable = await database.get('messages').query();
     console.log(checkVariable, 'values in db are');
-
+    console.log(arrayDummy.current, 'current value is 2');
     arrayDummy.current?.map(async arrayItem => {
       console.log(arrayItem, 'item in database function');
       await database.write(async () => {
@@ -73,24 +78,27 @@ const GroupChat = ({ messageRetrieve }) => {
     });
     getMessages();
   }
-  function fetchMessages() {
+  async function fetchMessages() {
     console.log('here fetch messages is re rendered');
-    let GUID = 'defaultchat_group';
-    const loggedUser = CometChat.getLoggedinUser().then(data => {
-      setLoggedIn(data.name);
-      setLoggedId(data.uid);
-    });
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
-      .setGUID(GUID)
-      .setLimit(50)
-      .build()
-      .fetchPrevious();
-    messagesRequest.then(res => {
-      arrayDummy.current = res;
-      console.log(arrayDummy.current, 'response in ref');
-      sendMessagesDatabase();
-    });
+    const dataCount = await database.get('messages').query().fetchCount();
+    if (dataCount === 0) {
+      let GUID = 'defaultchat_group';
+      let messagesRequest = new CometChat.MessagesRequestBuilder()
+        .setGUID(GUID)
+        .setLimit(50)
+        .build()
+        .fetchPrevious();
+      messagesRequest.then(res => {
+        arrayDummy.current = res;
+        console.log(arrayDummy.current, 'response in ref');
+        sendMessagesDatabase();
+      });
+    } else {
+      getMessages();
+      getUnreadMessages();
+    }
   }
+
   function getGroupMembers() {
     let GUID = 'defaultchat_group';
     let limit = 30;
@@ -112,7 +120,8 @@ const GroupChat = ({ messageRetrieve }) => {
     );
   }
 
-  async function sendMessages(e) {
+  async function sendMessages() {
+    console.log('entered sending messages function');
     setSendingMsg(true);
     let receiverID = 'defaultchat_group';
     let messageText = messageWritten;
@@ -129,8 +138,9 @@ const GroupChat = ({ messageRetrieve }) => {
         // setArrayMessage([...arrayMessage, message]);
         arrayMessage.unshift(message);
         setSendingMsg(false);
-        arrayDummy.current = message;
-        sendMessagesDatabase();
+        // arrayDummy.current = message;
+        console.log(arrayDummy.current, 'current value is 1');
+        sendMessageToDatabase(message);
         // refList.current.scrollToIndex({ index: 0, animated: true });
         setMessageWritten('');
         console.log(sendingMsg, 'reversed array after appending is');
@@ -143,16 +153,11 @@ const GroupChat = ({ messageRetrieve }) => {
     );
   }
 
-  function changeOcurred(data) {
-    console.log(data, 'data typed is');
-    setMessageWritten(data);
-  }
-
   async function getMessages() {
     const checkVariable = await database
       .get('messages')
       .query(Q.sortBy('sentAt', Q.asc));
-    console.log(checkVariable.reverse(), 'chacking data to retrieve');
+    console.log(checkVariable.reverse(), 'checking data to retrieve');
     const arrayReverse = checkVariable;
     console.log(arrayReverse, 'array to be sent');
     setArrayMessage(arrayReverse);
@@ -160,15 +165,121 @@ const GroupChat = ({ messageRetrieve }) => {
     console.log(arrayMessage, 'the array to be displayed is:');
   }
 
+  function getUnreadMessages() {
+    let GUID = 'defaultchat_group';
+    let limit = 30;
+    let messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setUnread(true)
+      .setLimit(limit)
+      .build();
+
+    messagesRequest.fetchPrevious().then(
+      messages => {
+        console.log('Message list fetched:', messages);
+        setArrayMessage(prev => [...messages, ...prev]);
+        arrayDummy.current = messages;
+        sendMessagesDatabase();
+      },
+      error => {
+        console.log('Message fetching failed with error:', error);
+      },
+    );
+  }
+
+  async function getDataFromDB() {
+    const countVariable = await database.get('messages').query().fetchCount();
+    console.log(countVariable, 'countVariable of db');
+    if (countVariable === 0) {
+      console.log('in if of start');
+      fetchMessages();
+    } else {
+      console.log('in else of start');
+      messagesLeft();
+    }
+  }
+
+  async function messagesLeft() {
+    const checkVariable = await database
+      .get('messages')
+      .query(Q.sortBy('sentAt', Q.desc));
+    if (arrayMessage.length === 0) {
+      const reversedArrayUsed = checkVariable.reverse();
+      setArrayMessage(reversedArrayUsed);
+    }
+    let GUID = 'defaultchat_group';
+    let timestamp = checkVariable[0].sentAt;
+    let limit = 50;
+    let messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setGUID(GUID)
+      .setTimestamp(timestamp)
+      .setLimit(limit)
+      .build();
+    messagesRequest.fetchNext().then(
+      messages => {
+        console.log('Messages fetched:', messages);
+        messages?.map(async arrayItem => {
+          await database.write(async () => {
+            const record = await database
+              .get('messages')
+              .query(Q.where('sentAt', arrayItem.sentAt))
+              .fetchCount();
+            if (record === 0 && arrayItem.sentAt !== 0) {
+              console.log('now updating response to local');
+              arrayMessage.unshift(arrayItem);
+              setLoading(false);
+              return await database.get('messages').create(data => {
+                data.text = arrayItem.text;
+                data.sentAt = arrayItem.updatedAt;
+                data.idMessage = arrayItem.id;
+                data.sender = arrayItem.sender.name;
+                data.type = arrayItem.type;
+                data.receiverId = arrayItem.receiverId;
+              });
+            } else {
+              setLoading(false);
+              console.log('data in else');
+            }
+          });
+        });
+      },
+      error => {
+        console.log('Message fetching failed with error:', error);
+      },
+    );
+  }
+
+  async function sendMessageToDatabase(item) {
+    const checkDatabase = await database.get('messages').query();
+    await database.write(async () => {
+      const record = await database
+        .get('messages')
+        .query(Q.where('idMessage', item.id))
+        .fetchCount();
+      if (record === 0) {
+        return await database.get('messages').create(data => {
+          console.log(item.sentAt, 'sentAt in database call');
+          data.text = item.text;
+          data.sentAt = item.updatedAt;
+          data.idMessage = item.id;
+          data.sender = item.sender.name;
+          data.type = item.type;
+          data.receiverId = item.receiverId;
+        });
+      }
+    });
+  }
+
   function getRealMessages() {
     let listenerID = 'defaultchat_group';
-
+    console.log('get real messages is called');
     CometChat.addMessageListener(
       listenerID,
       new CometChat.MessageListener({
         onTextMessageReceived: textMessage => {
           console.log('Text message received successfully', textMessage);
-          arrayMessage.unshift(textMessage);
+          setArrayMessage(prev => [textMessage, ...prev]);
+          sendMessageToDatabase(textMessage);
         },
         onMediaMessageReceived: mediaMessage => {
           console.log('Media message received successfully', mediaMessage);
@@ -179,7 +290,7 @@ const GroupChat = ({ messageRetrieve }) => {
       }),
     );
   }
-
+  console.log(arrayMessage, 'arrayMessage before flatlist');
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
@@ -203,10 +314,11 @@ const GroupChat = ({ messageRetrieve }) => {
         )}
         <View style={style.bottomView}>
           <TextInput
+            // ref={messageWritten}
             placeholder="Enter the message"
             value={messageWritten}
             style={style.textInput}
-            onChangeText={data => changeOcurred(data)}
+            onChangeText={data => setMessageWritten(data)}
             multiline={true}
           />
           <TouchableOpacity

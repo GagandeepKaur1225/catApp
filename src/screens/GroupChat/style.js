@@ -7,8 +7,8 @@ import {
 export const style = StyleSheet.create({
   textInput: {
     borderWidth: 2,
-    borderRadius: 6,
-    borderColor: 'blue',
+    borderRadius: 10,
+    borderColor: '#43ba7e',
     width: '86%',
     height: heightPercentageToDP('8%'),
     zIndex: 2,
@@ -33,6 +33,7 @@ export const style = StyleSheet.create({
     borderRadius: 6,
     padding: 4,
     backgroundColor: '#fff',
+    // borderColor: '#43ba7e',
   },
   groupHeading: {
     fontSize: 18,
@@ -52,7 +53,7 @@ export const style = StyleSheet.create({
   },
   senderName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#43ba7e',
   },
   flatList: {
@@ -60,8 +61,8 @@ export const style = StyleSheet.create({
     //   Platform.OS === 'ios'
     //     ? heightPercentageToDP('75%')
     //     : heightPercentageToDP('75%'),
-    borderWidth: 2,
-    flex:1
+    // borderWidth: 2,
+    flex: 1,
   },
   groupImage: {
     height: '48%',
@@ -84,6 +85,7 @@ export const style = StyleSheet.create({
   },
   chatBox: {
     padding: 5,
+    // backgroundColor:"#fff"
   },
   participantsImage: {
     height: '80%',

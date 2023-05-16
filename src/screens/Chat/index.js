@@ -18,7 +18,8 @@ import { useSelector } from 'react-redux';
 const Chat = () => {
   const data = useSelector(data => data);
   const loggedId = data.userData.uId;
-  if (loggedId.length !== 0) {
+  console.log(data.userData.uId, 'data from the store is:');
+  if (loggedId?.length !== 0) {
     addGroupMembers();
   }
   console.log(data, 'data from store');

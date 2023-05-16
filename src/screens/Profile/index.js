@@ -11,9 +11,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CometChat } from '@cometchat-pro/react-native-chat';
 import { Images } from '../../shared/images';
 import { clearRedux } from '../../store/userInfo';
+import database from '../../database';
 import { style } from './style';
 import { useNavigation } from '@react-navigation/native';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -23,7 +23,7 @@ const Profile = () => {
   const Uri = useRef('');
   Uri.current = link;
   console.log(data);
-  function logOut() {
+  async function logOut() {
     dispatch(clearRedux());
     CometChat.logout().then(
       () => {
@@ -33,6 +33,9 @@ const Profile = () => {
         console.log('Logout failed with exception:', { error });
       },
     );
+    await database.write(async () => {
+      const db = await database.get('messages').query().destroyAllPermanently();
+    });
     navigation.navigate('SignUp');
   }
   function goToChat() {
