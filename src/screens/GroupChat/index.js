@@ -49,7 +49,11 @@ const GroupChat = ({ messageRetrieve }) => {
   }, []);
 
   useEffect(() => {
-    console.log(messageRetrieve, 'message retrieve gives us value');
+    console.log(
+      messageRetrieve,
+      arrayMessage,
+      'message retrieve gives us value',
+    );
   }, [messageRetrieve]);
 
   async function sendMessagesDatabase(array) {
